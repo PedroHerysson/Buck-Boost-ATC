@@ -16,12 +16,353 @@ void Setup_GPIO(void)
 {
     EALLOW;
 
-    // GPIO34
+    // GPIO34 - LED
     GpioCtrlRegs.GPBGMUX1.bit.GPIO34 = 0;               // GPIO
     GpioCtrlRegs.GPBGMUX1.bit.GPIO34 = 0;               // GPIO
     GpioCtrlRegs.GPBPUD.bit.GPIO34 = 1;                 // Resistor pull-up
-    GpioCtrlRegs.GPBDIR.bit.GPIO34 = 1;
+    GpioCtrlRegs.GPBDIR.bit.GPIO34 = 1;                 // Only GPIO
     GpioCtrlRegs.GPBCSEL1.bit.GPIO34 = GPIO_MUX_CPU1;   // CPU1
+
+    // GPIO0 - ePWM1A (J4 - 40)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO0 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO0 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO0 = GPIO_MUX_CPU1;
+
+    // GPIO1 - ePWM1B (J4 - 39)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO1 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO1 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO1 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO1 = GPIO_MUX_CPU1;
+
+    // GPIO2 - ePWM2A (J4 - 38)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO2 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO2 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO2 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO2 = GPIO_MUX_CPU1;
+
+    // GPIO3 - ePWM2B (J4 - 37)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO3 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO3 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO3 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO3 = GPIO_MUX_CPU1;
+
+    // GPIO4 - ePWM3A (J4 - 36)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO4 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO4 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO4 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO4 = GPIO_MUX_CPU1;
+
+    // GPIO5 - ePWM3B (J4 - 35)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO5 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO5 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO5 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO5 = GPIO_MUX_CPU1;
+
+    // GPIO6 - ePWM4A (J8 - 80)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO6 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO6 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO6 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO6 = GPIO_MUX_CPU1;
+
+    // GPIO7 - ePWM4B (J8 - 79)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO7 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO7 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO7 = 1;
+    GpioCtrlRegs.GPACSEL1.bit.GPIO7 = GPIO_MUX_CPU1;
+
+    // GPIO8 - ePWM5A (J8 - 78)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO8 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO8 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO8 = 1;
+    GpioCtrlRegs.GPACSEL2.bit.GPIO8 = GPIO_MUX_CPU1;
+
+    // GPIO9 - ePWM5B (J8 - 77)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO9 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO9 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO9 = 1;
+    GpioCtrlRegs.GPACSEL2.bit.GPIO9 = GPIO_MUX_CPU1;
+
+    // GPIO10 - ePWM6A (J8 - 76)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO10 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO10 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO10 = 1;
+    GpioCtrlRegs.GPACSEL2.bit.GPIO10 = GPIO_MUX_CPU1;
+
+    // GPIO8 - ePWM6B (J8 - 75)
+    GpioCtrlRegs.GPAGMUX1.bit.GPIO11 = 0;
+    GpioCtrlRegs.GPAMUX1.bit.GPIO11 = 1;
+    GpioCtrlRegs.GPAPUD.bit.GPIO11 = 1;
+    GpioCtrlRegs.GPACSEL2.bit.GPIO11 = GPIO_MUX_CPU1;
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM1 (CREE MODULE 1)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM1(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm1Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm1Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
+    EPwm1Regs.TBCTR = 0;                                // Clear count
+    EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+    EPwm1Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
+    EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm1Regs.CMPA.bit.CMPA = EPwm1Regs.TBPRD >> 1;     // 0,5
+
+    EPwm1Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm1Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm1Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm1Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM1A - DIODE
+    EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm1Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm1Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm1Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM1B - DIODE
+    EPwm1Regs.AQCTLB.bit.CAD = AQ_CLEAR;
+    EPwm1Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm1Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM2 (CREE MODULE 1)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM2(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM2 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm2Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm2Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
+    EPwm2Regs.TBCTR = 0;                                // Clear count
+    EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+    EPwm2Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
+    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm2Regs.CMPA.bit.CMPA = EPwm2Regs.TBPRD >> 1;     // 0,5
+
+    EPwm2Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm2Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm2Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm2Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM2A - DIODE
+    EPwm2Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm2Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm2Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm2Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM2B - DIODE
+    EPwm2Regs.AQCTLB.bit.CAD = AQ_CLEAR;
+    EPwm2Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm2Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM3 (CREE MODULE 1)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM3(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM3 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm3Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm3Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
+    EPwm3Regs.TBCTR = 0;                                // Clear count
+    EPwm3Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+    EPwm3Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
+    EPwm3Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm3Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm3Regs.CMPA.bit.CMPA = EPwm3Regs.TBPRD >> 1;     // 0,5
+
+    EPwm3Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm3Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm3Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm3Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm3Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM3A - DIODE
+    EPwm3Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm3Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm3Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm3Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM3B - DIODE
+    EPwm3Regs.AQCTLB.bit.CAD = AQ_CLEAR;
+    EPwm3Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm3Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM4 (CREE MODULE 2)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM4(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM4 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm4Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm4Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
+    EPwm4Regs.TBCTR = 0;                                // Clear count
+    EPwm4Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+
+    EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO;
+
+    EPwm4Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
+    EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm4Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm4Regs.CMPA.bit.CMPA = 814;                      // 0,57 (814)
+
+    EPwm4Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm4Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm4Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm4Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm4Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM4A - DIODE
+    EPwm4Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm4Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm4Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm4Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM4B - SWITCH
+    EPwm4Regs.AQCTLB.bit.CAD = AQ_SET;
+    EPwm4Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
+    EPwm4Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM5 (CREE MODULE 2)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM5(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM5 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm5Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm5Regs.TBCTR = 0;                                // Clear count
+    EPwm5Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+
+    EPwm5Regs.TBPHS.bit.TBPHS = 952;                    // 120 phase (0-TBPRD)(0-180)
+    EPwm5Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
+    EPwm5Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Phase
+    EPwm5Regs.TBCTL.bit.PHSDIR = TB_DOWN;               // Direction down
+
+    EPwm5Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm5Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm5Regs.CMPA.bit.CMPA = 814;                      // 0,5 (814)
+
+    EPwm5Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm5Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm5Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm5Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm5Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM5A - DIODE
+    EPwm5Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm5Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm5Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm5Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM5B - SWITCH
+    EPwm5Regs.AQCTLB.bit.CAD = AQ_SET;
+    EPwm5Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
+    EPwm5Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+
+    EDIS;
+}
+
+/*
+ * @brief Setup ePWM6 (CREE MODULE 2)
+ * PWM Configuration
+ * @return none
+ * */
+void Setup_ePWM6(void)
+{
+    EALLOW;
+    CpuSysRegs.PCLKCR2.bit.EPWM6 = 1;                   // Off module clock
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+
+    EPwm6Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm6Regs.TBCTR = 0;                                // Clear count
+    EPwm6Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+
+    EPwm6Regs.TBPHS.bit.TBPHS = 952;                    // 0 phase (0-TBPRD)
+    EPwm6Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
+    EPwm6Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Phase
+    EPwm6Regs.TBCTL.bit.PHSDIR = TB_UP;                 // Direction up
+
+    EPwm6Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm6Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm6Regs.CMPA.bit.CMPA = 814;                      // 0,5 (814)
+
+    EPwm6Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm6Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+    EPwm6Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm6Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+
+    EPwm6Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM6A - DIODE
+    EPwm6Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm6Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm6Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+
+    EPwm6Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM6B - SWITCH
+    EPwm6Regs.AQCTLB.bit.CAD = AQ_SET;
+    EPwm6Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
+    EPwm6Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+
+    // DBCTL not used
+
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
 
     EDIS;
 }

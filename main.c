@@ -87,6 +87,12 @@ int main(void)
     Setup_GPIO();
 
     // Configura PWM
+    Setup_ePWM1();
+    Setup_ePWM2();
+    Setup_ePWM3();
+    Setup_ePWM4();
+    Setup_ePWM5();
+    Setup_ePWM6();
     Setup_ePWM10();
 
     // Configura ADC

@@ -13,5 +13,11 @@
 void Setup_GPIO(void);
 void Setup_ADC(void);
 void Setup_ePWM10(void);
+void Setup_ePWM1(void);
+void Setup_ePWM2(void);
+void Setup_ePWM3(void);
+void Setup_ePWM4(void);
+void Setup_ePWM5(void);
+void Setup_ePWM6(void);
 
 #endif /* PERIF_SETUP_H_ */
