@@ -6,11 +6,11 @@
  * Data: 24/06/24
  *
  * Legenda:
- * PORTA -> LABEL       (Localização - Função)
+ * PORTA -> LABEL       (Localizaï¿½ï¿½o - Funï¿½ï¿½o)
  *
  * Pinos utilizados:
  *
- * GPIO34 -> LED        (LaunchPad - LED de indicação)
+ * GPIO34 -> LED        (LaunchPad - LED de indicaï¿½ï¿½o)
  *
  * GPIO0 -> PWM1A       (J4 40 - PWM)
  * GPIO1 -> PWM1B       (J4 39 - PWM)
@@ -19,7 +19,7 @@
  * GPIO4 -> PWM3A       (J4 36 - PWM)
  * GPIO5 -> PWM3B       (J4 35 - PWM)
  * GPIO24 -> RDY1_CREE  (J4 34 - o que faz???)
- * GPIO16 -> FLT1_CREE  (J4 33 - pino de falha do módulo)
+ * GPIO16 -> FLT1_CREE  (J4 33 - pino de falha do mï¿½dulo)
  *
  * GPIO6 -> PWM4A       (J8 80 - PWM)
  * GPIO7 -> PWM4B       (J8 79 - PWM)
@@ -28,7 +28,7 @@
  * GPIO10 -> PWM6A      (J8 76 - PWM)
  * GPIO11 -> PWM6B      (J8 75 - PWM)
  * GPIO14 -> RDY2_CREE  (J8 74 - o que faz???)
- * GPIO15 -> FLT2_CREE  (J8 73 - pino de falha do módulo)
+ * GPIO15 -> FLT2_CREE  (J8 73 - pino de falha do mï¿½dulo)
  *
  * ADCINC3 -> Isec3     (DevKit J3 24 - ADC)
  * ADCINB3 -> Isec2     (DevKit J3 25 - ADC)
@@ -49,11 +49,11 @@ __interrupt void isr_adca(void);
 __interrupt void isr_adcb(void);
 __interrupt void isr_adcc(void);
 
-// Variáveis
+// Variï¿½veis
 
 uint16_t count_led = 0;
 
-uint16_t Isec1_SOC = 0;             // Variáveis que recebem SOC
+uint16_t Isec1_SOC = 0;             // Variï¿½veis que recebem SOC
 uint16_t Isec2_SOC = 0;
 uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
@@ -68,16 +68,16 @@ int main(void)
 
     InitPieCtrl();
 
-    IER = 0x0000;       // Desabilita interrupções
+    IER = 0x0000;       // Desabilita interrupï¿½ï¿½es
     IFR = 0x0000;
 
     InitPieVectTable();
 
     EALLOW;
 
-    PieVectTable.ADCA1_INT = &isr_adca;                      // Att interrupção ADCA
-    PieVectTable.ADCB1_INT = &isr_adcb;                      // Att interrupção
-    PieVectTable.ADCC1_INT = &isr_adcc;                      // Att interrupção
+    PieVectTable.ADCA1_INT = &isr_adca;                      // Att interrupï¿½ï¿½o ADCA
+    PieVectTable.ADCB1_INT = &isr_adcb;                      // Att interrupï¿½ï¿½o
+    PieVectTable.ADCC1_INT = &isr_adcc;                      // Att interrupï¿½ï¿½o
 
     PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Habilita coluna ADC
 
@@ -113,7 +113,7 @@ int main(void)
     }
 }
 
-// Entra na primeira interrupção e não vem mais, erro deve estar na aquisição
+// Entra na primeira interrupï¿½ï¿½o e nï¿½o vem mais, erro deve estar na aquisiï¿½ï¿½o
 __interrupt void isr_adca(void)
 {
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
@@ -123,14 +123,14 @@ __interrupt void isr_adca(void)
     GpioDataRegs.GPBTOGGLE.bit.GPIO32 = 1;
 }
 
-// Não chega na interrupção
+// Nï¿½o chega na interrupï¿½ï¿½o
 __interrupt void isr_adcb(void)
 {
     Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
     Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
 }
 
-// Não chega na interrupção
+// Nï¿½o chega na interrupï¿½ï¿½o
 __interrupt void isr_adcc(void)
 {
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
