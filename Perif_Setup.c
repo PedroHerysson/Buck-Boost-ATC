@@ -6,6 +6,12 @@
  */
 
 #include "Perif_Setup.h"
+#define ref 2520U
+
+float u[3] = {0,0,0};
+float e[3] = {0,0,0};
+float k[3] = {0,0,0};
+float er[3] = {0,0,0};
 
 
 /*
@@ -15,6 +21,13 @@
 void Setup_GPIO(void)
 {
     EALLOW;
+
+    // GPIO32 - Control Test
+    GpioCtrlRegs.GPBGMUX1.bit.GPIO32 = 0;               // GPIO
+    GpioCtrlRegs.GPBGMUX1.bit.GPIO32 = 0;               // GPIO
+    GpioCtrlRegs.GPBPUD.bit.GPIO32 = 1;                 // Resistor pull-up
+    GpioCtrlRegs.GPBDIR.bit.GPIO32 = 1;                 // Only GPIO
+    GpioCtrlRegs.GPBCSEL1.bit.GPIO32 = GPIO_MUX_CPU1;   // CPU1
 
     // GPIO34 - LED
     GpioCtrlRegs.GPBGMUX1.bit.GPIO34 = 0;               // GPIO
@@ -492,4 +505,23 @@ void Setup_ADC()
     AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
     EDIS;
+}
+
+void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
+{
+    er[0] = ref - Vdcprim_SOC;
+    k[0] = (1.906*k[1])-(0.906*k[2])+(0.001594*er[0])+(0.00005655*er[1])-(0.001538*er[2]);
+    if(k[0]>1500) k[0] = 2000;
+    e[0] = k[0] - Isec1_SOC;        // retirado int(k[0])
+    u[0] = ((0.506*u[1])+(0.494*u[2])+(0.29*e[0])+(0.019*e[1])-(0.271*e[2]));
+    if(u[0] <= 0) u[0] = 0;
+    u[2]=u[1];
+    u[1]=u[0];
+    e[2]=e[1];
+    e[1]=e[0];
+    k[2]=k[1];
+    k[1]=k[0];
+    er[2]=er[1];
+    er[1]=er[0];
+    //out[0]=int(u[0]);
 }
