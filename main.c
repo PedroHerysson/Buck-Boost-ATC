@@ -42,17 +42,15 @@
 
 #include "Perif_Setup.h"
 
-// Definitions
-
-// Functions
+// Funções
 __interrupt void isr_adca(void);
 __interrupt void isr_adcb(void);
 __interrupt void isr_adcc(void);
 
 // Variáveis
+uint32_t count = 0;
 
-uint16_t count_led = 0;
-
+uint16_t i=0;                       // Variável auxiliar para MMF (move mean filter)
 uint16_t Isec1_SOC = 0;             // Variáveis que recebem SOC
 uint16_t Isec2_SOC = 0;
 uint16_t Isec3_SOC = 0;
@@ -61,6 +59,7 @@ uint16_t Vdcprim_SOC = 0;
 
 int main(void)
 {
+
     InitSysCtrl();
     // InitPeripheralClocks() desabilitados
 
@@ -102,35 +101,28 @@ int main(void)
     EINT;
     ERTM;               // Com real time
 
-
     GpioDataRegs.GPBDAT.bit.GPIO34 = 0;
 
     while(1)
     {
-        for (count_led = 0; count_led < 0x00FFFFFF; count_led++)
+        for (count = 0; count < 0x00FFFFFF; count++)
         {}
         GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
     }
 }
 
-// Entra na primeira interrupção e não vem mais, erro deve estar na aquisição
 __interrupt void isr_adca(void)
 {
-    GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
     Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
     Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-    Float_Control (Isec1_SOC, Vdcprim_SOC);
-    GpioDataRegs.GPBTOGGLE.bit.GPIO32 = 1;
 }
 
-// Não chega na interrupção
 __interrupt void isr_adcb(void)
 {
     Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
     Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
 }
 
-// Não chega na interrupção
 __interrupt void isr_adcc(void)
 {
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3

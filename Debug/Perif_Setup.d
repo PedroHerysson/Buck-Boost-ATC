@@ -61,9 +61,6 @@ Perif_Setup.obj: C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/
 Perif_Setup.obj: C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_SysCtrl_defines.h
 Perif_Setup.obj: C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_Upp_defines.h
 Perif_Setup.obj: C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_defaultisr.h
-Perif_Setup.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/Stdlib.h
-Perif_Setup.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/stdlibf.h
-Perif_Setup.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/String.h
 
 ../Perif_Setup.c: 
 ../Perif_Setup.h: 
@@ -126,6 +123,3 @@ C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_D
 C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_SysCtrl_defines.h: 
 C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_Upp_defines.h: 
 C:/ti/c2000/C2000Ware_5_02_00_00/device_support/f2837xd/common/include/F2837xD_defaultisr.h: 
-C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/Stdlib.h: 
-C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/stdlibf.h: 
-C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include/String.h: 
