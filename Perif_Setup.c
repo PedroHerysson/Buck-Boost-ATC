@@ -392,7 +392,7 @@ void Setup_ePWM10(void){
 
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm10Regs.TBPRD = 5000;                         //periodo (up/down) 10Khz Clock/4/fpwm LAB PWM
+    EPwm10Regs.TBPRD = 952;                         //periodo (up/down) 105Khz Clock/2/fpwm LAB PWM
 
     //Largura do pulso 50%
     EPwm10Regs.CMPA.bit.CMPA = EPwm10Regs.TBPRD >> 1;

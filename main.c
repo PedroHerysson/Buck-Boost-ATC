@@ -6,11 +6,11 @@
  * Data: 24/06/24
  *
  * Legenda:
- * PORTA -> LABEL       (Localiza��o - Fun��o)
+ * PORTA -> LABEL       (Localizacao - Funcao)
  *
  * Pinos utilizados:
  *
- * GPIO34 -> LED        (LaunchPad - LED de indica��o)
+ * GPIO34 -> LED        (LaunchPad - LED de indicacao)
  *
  * GPIO0 -> PWM1A       (J4 40 - PWM)
  * GPIO1 -> PWM1B       (J4 39 - PWM)
@@ -19,7 +19,7 @@
  * GPIO4 -> PWM3A       (J4 36 - PWM)
  * GPIO5 -> PWM3B       (J4 35 - PWM)
  * GPIO24 -> RDY1_CREE  (J4 34 - o que faz???)
- * GPIO16 -> FLT1_CREE  (J4 33 - pino de falha do m�dulo)
+ * GPIO16 -> FLT1_CREE  (J4 33 - pino de falha do modulo)
  *
  * GPIO6 -> PWM4A       (J8 80 - PWM)
  * GPIO7 -> PWM4B       (J8 79 - PWM)
@@ -28,7 +28,7 @@
  * GPIO10 -> PWM6A      (J8 76 - PWM)
  * GPIO11 -> PWM6B      (J8 75 - PWM)
  * GPIO14 -> RDY2_CREE  (J8 74 - o que faz???)
- * GPIO15 -> FLT2_CREE  (J8 73 - pino de falha do m�dulo)
+ * GPIO15 -> FLT2_CREE  (J8 73 - pino de falha do modulo)
  *
  * ADCINC3 -> Isec3     (DevKit J3 24 - ADC)
  * ADCINB3 -> Isec2     (DevKit J3 25 - ADC)
@@ -37,6 +37,12 @@
  * ADCINB4 -> Vdcsec    (DevKit J7 68 - ADC)
  * ADCINA4 -> Vdcprim   (DevKit J7 69 - ADC)
  *
+ *
+ * TODO:
+ *  Colocar CMPA como saida do controle
+ *  Verificar se 105kHz gerado com triangular
+ *  DAC com triangular
+ *  Ponto fixo
  *
  */
 
@@ -49,11 +55,11 @@ __interrupt void isr_adca(void);
 __interrupt void isr_adcb(void);
 __interrupt void isr_adcc(void);
 
-// Vari�veis
+// Variaveis
 
 uint16_t count_led = 0;
 
-uint16_t Isec1_SOC = 0;             // Vari�veis que recebem SOC
+uint16_t Isec1_SOC = 0;             // Variaveis que recebem SOC
 uint16_t Isec2_SOC = 0;
 uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
@@ -68,16 +74,16 @@ int main(void)
 
     InitPieCtrl();
 
-    IER = 0x0000;       // Desabilita interrup��es
+    IER = 0x0000;       // Desabilita interrupcao
     IFR = 0x0000;
 
     InitPieVectTable();
 
     EALLOW;
 
-    PieVectTable.ADCA1_INT = &isr_adca;                      // Att interrup��o ADCA
-    PieVectTable.ADCB1_INT = &isr_adcb;                      // Att interrup��o
-    PieVectTable.ADCC1_INT = &isr_adcc;                      // Att interrup��o
+    PieVectTable.ADCA1_INT = &isr_adca;                      // Att interrupcao ADCA
+    PieVectTable.ADCB1_INT = &isr_adcb;                      // Att interrupcao
+    PieVectTable.ADCC1_INT = &isr_adcc;                      // Att interrupcao
 
     PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Habilita coluna ADC
 
@@ -113,27 +119,37 @@ int main(void)
     }
 }
 
-// Entra na primeira interrup��o e n�o vem mais, erro deve estar na aquisi��o
+// Entra na primeira interrupcao e nao vem mais, erro deve estar na aquisicao
 __interrupt void isr_adca(void)
 {
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
     Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
     Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
     Float_Control (Isec1_SOC, Vdcprim_SOC);
+
+    AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+
     GpioDataRegs.GPBTOGGLE.bit.GPIO32 = 1;
 }
 
-// N�o chega na interrup��o
+// Nao chega na interrupcao
 __interrupt void isr_adcb(void)
 {
     Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
     Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
+
+    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
-// N�o chega na interrup��o
+// Nao chega na interrupcao
 __interrupt void isr_adcc(void)
 {
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
+
+    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 }
 
 
