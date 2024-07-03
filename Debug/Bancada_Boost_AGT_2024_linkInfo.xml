@@ -2,7 +2,7 @@
 <link_info>
    <banner>TMS320C2000 Linker PC v16.9.4.LTS</banner>
    <copyright>Copyright (c) 1996-2017 Texas Instruments Incorporated</copyright>
-   <link_time>0x668484df</link_time>
+   <link_time>0x6685999a</link_time>
    <link_errors>0x0</link_errors>
    <output_file>Bancada_Boost_AGT_2024.out</output_file>
    <entry_point>
@@ -1543,69 +1543,69 @@
          <name>.debug_line</name>
          <load_address>0x1a57</load_address>
          <run_address>0x1a57</run_address>
-         <size>0xc2</size>
+         <size>0xc3</size>
          <input_file_ref idref="fl-f"/>
       </object_component>
       <object_component id="oc-148">
          <name>.debug_line</name>
-         <load_address>0x1b19</load_address>
-         <run_address>0x1b19</run_address>
+         <load_address>0x1b1a</load_address>
+         <run_address>0x1b1a</run_address>
          <size>0x7e</size>
          <input_file_ref idref="fl-22"/>
       </object_component>
       <object_component id="oc-14d">
          <name>.debug_line</name>
-         <load_address>0x1b97</load_address>
-         <run_address>0x1b97</run_address>
+         <load_address>0x1b98</load_address>
+         <run_address>0x1b98</run_address>
          <size>0x50</size>
          <input_file_ref idref="fl-23"/>
       </object_component>
       <object_component id="oc-154">
          <name>.debug_line</name>
-         <load_address>0x1be7</load_address>
-         <run_address>0x1be7</run_address>
+         <load_address>0x1be8</load_address>
+         <run_address>0x1be8</run_address>
          <size>0x65</size>
          <input_file_ref idref="fl-24"/>
       </object_component>
       <object_component id="oc-159">
          <name>.debug_line</name>
-         <load_address>0x1c4c</load_address>
-         <run_address>0x1c4c</run_address>
+         <load_address>0x1c4d</load_address>
+         <run_address>0x1c4d</run_address>
          <size>0xad</size>
          <input_file_ref idref="fl-25"/>
       </object_component>
       <object_component id="oc-15e">
          <name>.debug_line</name>
-         <load_address>0x1cf9</load_address>
-         <run_address>0x1cf9</run_address>
+         <load_address>0x1cfa</load_address>
+         <run_address>0x1cfa</run_address>
          <size>0x62</size>
          <input_file_ref idref="fl-26"/>
       </object_component>
       <object_component id="oc-163">
          <name>.debug_line</name>
-         <load_address>0x1d5b</load_address>
-         <run_address>0x1d5b</run_address>
+         <load_address>0x1d5c</load_address>
+         <run_address>0x1d5c</run_address>
          <size>0x3e</size>
          <input_file_ref idref="fl-27"/>
       </object_component>
       <object_component id="oc-168">
          <name>.debug_line</name>
-         <load_address>0x1d99</load_address>
-         <run_address>0x1d99</run_address>
+         <load_address>0x1d9a</load_address>
+         <run_address>0x1d9a</run_address>
          <size>0x3a</size>
          <input_file_ref idref="fl-28"/>
       </object_component>
       <object_component id="oc-16d">
          <name>.debug_line</name>
-         <load_address>0x1dd3</load_address>
-         <run_address>0x1dd3</run_address>
+         <load_address>0x1dd4</load_address>
+         <run_address>0x1dd4</run_address>
          <size>0x5e</size>
          <input_file_ref idref="fl-29"/>
       </object_component>
       <object_component id="oc-172">
          <name>.debug_line</name>
-         <load_address>0x1e31</load_address>
-         <run_address>0x1e31</run_address>
+         <load_address>0x1e32</load_address>
+         <run_address>0x1e32</run_address>
          <size>0x55</size>
          <input_file_ref idref="fl-2a"/>
       </object_component>
@@ -3156,7 +3156,7 @@
          <name>.debug_line</name>
          <load_address>0x0</load_address>
          <run_address>0x0</run_address>
-         <size>0x1e86</size>
+         <size>0x1e87</size>
          <contents>
             <object_component_ref idref="oc-90"/>
             <object_component_ref idref="oc-96"/>
