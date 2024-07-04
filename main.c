@@ -37,8 +37,11 @@
  * ADCINB4 -> Vdcsec    (DevKit J7 68 - ADC)
  * ADCINA4 -> Vdcprim   (DevKit J7 69 - ADC)
  *
+ * DACOUTA -> PWM10     (DevKit J3 30 - Triangule from ADC Trigger)
+ * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
+ *  Apenas DAC prototipada, DACVALS não carregado
  *  Verificar se 105kHz gerado com triangular (DAC1)
  *  DAC com triangular (DAC2)
  *  Colocar CMPA como saida do controle
@@ -66,6 +69,8 @@ uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
 uint16_t Vdcprim_SOC = 0;
 
+uint16_t x = 0;
+
 int main(void)
 {
     InitSysCtrl();
@@ -82,9 +87,9 @@ int main(void)
 
     EALLOW;
 
-    PieVectTable.ADCA1_INT = &isr_adca;                      // Pointer for ADCA interruption
+    PieVectTable.ADCA1_INT = &isr_adca;                     // Pointer for ADCA interruption
 //    PieVectTable.ADCB1_INT = &isr_adcb;                      // Pointer for ADCB interruption
-//    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
+    //    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
 
     PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Column ADCA
     PieCtrlRegs.PIEIER1.bit.INTx2 = 1;                      // Column ADCB
@@ -108,6 +113,9 @@ int main(void)
 
     // ADC Configuration
     Setup_ADC();
+
+    // DAC Configuration
+    Setup_DAC();
 
     EINT;
     ERTM;               // Real time

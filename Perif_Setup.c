@@ -491,7 +491,7 @@ void Setup_ADC()
 
     // Interrupção pós SOC0 do ADCA
 
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC0 gera INT1E (ADCA)
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
@@ -506,6 +506,15 @@ void Setup_ADC()
     EDIS;
 }
 
+
+/*
+ * @brief Closed loop function
+ *
+ * Isec_SOC: current measure from interruption
+ * Vdcprim_SOC: voltage measure from interruption
+ *
+ * @return none
+ */
 void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
 {
     er[0] = ref - Vdcprim_SOC;
@@ -523,4 +532,28 @@ void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
     er[2]=er[1];
     er[1]=er[0];
     //out[0]=int(u[0]);
+}
+
+/*
+ * @brief DAC function
+ *
+ * @return none
+ */
+void Setup_DAC()
+{
+    EALLOW;
+
+    DacbRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
+    DacaRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
+
+    DacbRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
+    DacaRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
+
+    DacbRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
+    DacaRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
+
+    DacbRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
+    DacaRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
+
+    EDIS;
 }
