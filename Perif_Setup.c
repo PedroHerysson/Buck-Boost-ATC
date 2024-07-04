@@ -6,7 +6,12 @@
  */
 
 #include "Perif_Setup.h"
+#define ref 2520U
 
+float u[3] = {0,0,0};
+float e[3] = {0,0,0};
+float k[3] = {0,0,0};
+float er[3] = {0,0,0};
 
 /*
  * @brief Fun��o para configurar pino como GPIO
