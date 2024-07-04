@@ -118,7 +118,7 @@ int main(void)
     {
 //        for (count = 0; count < 0x00FFFFFF; count++)
 //        {}
-//        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;teste git
+//        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
     }
 }
 
