@@ -22,4 +22,9 @@ void Setup_ePWM4(void);
 void Setup_ePWM5(void);
 void Setup_ePWM6(void);
 
+void Off_ePWMs(void);
+void On_ePWMs(void);
+
+void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC);
+
 #endif /* PERIF_SETUP_H_ */

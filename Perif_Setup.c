@@ -6,12 +6,18 @@
  */
 
 #include "Perif_Setup.h"
+
+
+#define OL_DC 814U
+
 #define ref 2520U
 
 float u[3] = {0,0,0};
 float e[3] = {0,0,0};
 float k[3] = {0,0,0};
 float er[3] = {0,0,0};
+
+uint16_t CL_DC = 0;
 
 /*
  * @brief Fun��o para configurar pino como GPIO
@@ -254,7 +260,7 @@ void Setup_ePWM4(void)
     EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm4Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm4Regs.CMPA.bit.CMPA = 814;                      // 0,57 (814)
+    EPwm4Regs.CMPA.bit.CMPA = OL_DC;                      // 0,57 (814)
 
     EPwm4Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm4Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -301,7 +307,7 @@ void Setup_ePWM5(void)
     EPwm5Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm5Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm5Regs.CMPA.bit.CMPA = 814;                      // 0,5 (814)
+    EPwm5Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm5Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm5Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -348,7 +354,7 @@ void Setup_ePWM6(void)
     EPwm6Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm6Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm6Regs.CMPA.bit.CMPA = 814;                      // 0,5 (814)
+    EPwm6Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm6Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm6Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -381,33 +387,31 @@ void Setup_ePWM6(void)
 void Setup_ePWM10(void){
     EALLOW;
     CpuSysRegs.PCLKCR2.bit.EPWM10 = 1;           //habilitar clock
-
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm10Regs.TBPRD = 952;                         //periodo (up/down) 105Khz Clock/2/fpwm LAB PWM
-
-    //Largura do pulso 50%
-    EPwm10Regs.CMPA.bit.CMPA = EPwm10Regs.TBPRD >> 1;
-
+    EPwm10Regs.TBPRD = 476;                          //periodo (up/down) 105Khz Clock/4/fpwm LAB PWM
     EPwm10Regs.TBPHS.bit.TBPHS = 0;                  // Phase is 0
-    EPwm10Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO;
     EPwm10Regs.TBCTR = 0x0000;                       // Clear counter
-
     EPwm10Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;  // Count up/down
-    EPwm10Regs.TBCTL.bit.PHSEN = TB_DISABLE;         // Disable phase loading
+
+    EPwm10Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
+    EPwm10Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Phase
+    EPwm10Regs.TBCTL.bit.PHSDIR = TB_UP;
 
     EPwm10Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;        // Clock ratio to SYSCLKOUT
     EPwm10Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+
+    EPwm10Regs.CMPA.bit.CMPA = EPwm10Regs.TBPRD >> 1;
 
     EPwm10Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;     // Load registers every ZERO
     EPwm10Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
     EPwm10Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;     // Load registers every ZERO
     EPwm10Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm10Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
-    EPwm10Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
-    EPwm10Regs.AQCTLA.bit.CAU = AQ_CLEAR;            // set actions for EPWM10A
-    EPwm10Regs.AQCTLA.bit.CAD = AQ_SET;
+    EPwm10Regs.AQCTLA.bit.PRD = AQ_CLEAR;
+    EPwm10Regs.AQCTLA.bit.ZRO = AQ_SET;
+    EPwm10Regs.AQCTLA.bit.CAU = AQ_NO_ACTION;            // set actions for EPWM10A
+    EPwm10Regs.AQCTLA.bit.CAD = AQ_NO_ACTION;
 
     //Trigger ADC
     EPwm10Regs.ETSEL.bit.SOCAEN = 1;                 // Enable SOC on A group
@@ -498,7 +502,6 @@ void Setup_ADC()
     EDIS;
 }
 
-
 /*
  * @brief Closed loop function
  *
@@ -523,7 +526,7 @@ void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
     k[1]=k[0];
     er[2]=er[1];
     er[1]=er[0];
-    //out[0]=int(u[0]);
+    // EPwm4Regs.CMPA.bit.CMPA=int(u[0]);
 }
 
 /*
@@ -538,14 +541,16 @@ void Setup_DAC()
     DacbRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
     DacaRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
 
-    DacbRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
-    DacaRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
+    DacbRegs.DACVALS.all = 0;                   // DACVALS bits 11-0 (mid-rang)
+    DacaRegs.DACVALS.all = 0;                   // DACVALS bits 11-0 (mid-rang)
 
     DacbRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
     DacaRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
 
     DacbRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
     DacaRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
+
+    DELAY_US(10);                               // Delay DAC Power
 
     EDIS;
 }

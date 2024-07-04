@@ -42,21 +42,22 @@
  * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
- *  Apenas DAC prototipada, DACVALS não carregado
- *  Verificar se 105kHz gerado com triangular (DAC1)
- *  DAC com triangular (DAC2)
- *  Colocar CMPA como saida do controle
- *  Bater o martelo sobre relaï¿½ï¿½o SOC/ADC
+ *  EPWM10 e EPWM4 nao estao sincronizados
+ *  Nao reconhece registrador CMPA na rotina float_control
+ *  Bater o martelo sobre relacao SOC/ADC
  *  Ponto fixo
  *
  */
 
 #include "Perif_Setup.h"
 
-// Funï¿½ï¿½es
+// Definitions
+
 __interrupt void isr_adca(void);
 //__interrupt void isr_adcb(void);
 //__interrupt void isr_adcc(void);
+
+__interrupt void isr_timer0(void);
 
 // Variables
 
@@ -68,7 +69,7 @@ uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
 uint16_t Vdcprim_SOC = 0;
 
-uint16_t x = 0;
+uint16_t x = 1000;
 
 int main(void)
 {
@@ -90,14 +91,22 @@ int main(void)
     PieVectTable.ADCA1_INT = &isr_adca;                     // Pointer for ADCA interruption
 //    PieVectTable.ADCB1_INT = &isr_adcb;                      // Pointer for ADCB interruption
     //    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
+    PieVectTable.TIMER0_INT = &isr_timer0;                  // Pointer to TIMER0 interruption
 
     PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Column ADCA
     PieCtrlRegs.PIEIER1.bit.INTx2 = 1;                      // Column ADCB
     PieCtrlRegs.PIEIER1.bit.INTx3 = 1;                      // Column ADCC
 
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;                      // Column TIM0
+
 
     EDIS;
-    IER |= M_INT1;                                          // Line 1 ADC
+    IER |= M_INT1;                                          // Line 1 ADC, TIMTER 0
+
+    // TTMER 0 Configuration
+    InitCpuTimers();
+    ConfigCpuTimer(&CpuTimer0, 200, 1000000);               // CPU1, CLK, TIME
+    CpuTimer0Regs.TCR.all = 0x400;                          // Habilita interrupcao
 
     // GPIO Configuration
     Setup_GPIO();
@@ -125,9 +134,8 @@ int main(void)
 
     while(1)
     {
-//        for (count = 0; count < 0x00FFFFFF; count++)
-//        {}
-//        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+        DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus)
+        DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem
     }
 }
 
@@ -168,7 +176,11 @@ __interrupt void isr_adca(void)
 //    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 //}
 
+__interrupt void isr_timer0(void)
+{
+    // Cada ciclo de clock vai atualizar o valor do dac
 
+}
 
 
 

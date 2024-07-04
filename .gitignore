@@ -32,3 +32,17 @@ Debug/F2837xD_SysCtrl.obj
 Debug/F2837xD_usDelay.obj
 Debug/main.obj
 Debug/Perif_Setup.obj
+Debug/F2837xD_Adc.obj
+Debug/F2837xD_CodeStartBranch.obj
+Debug/F2837xD_CpuTimers.obj
+Debug/F2837xD_DefaultISR.obj
+Debug/F2837xD_Dma.obj
+Debug/F2837xD_EPwm.obj
+Debug/F2837xD_GlobalVariableDefs.obj
+Debug/F2837xD_Gpio.obj
+Debug/F2837xD_PieCtrl.obj
+Debug/F2837xD_PieVect.obj
+Debug/F2837xD_SysCtrl.obj
+Debug/F2837xD_usDelay.obj
+Debug/main.obj
+Debug/Perif_Setup.obj
