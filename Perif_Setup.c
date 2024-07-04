@@ -462,47 +462,46 @@ void Setup_ADC()
     AdccRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCC
     DELAY_US(1000);
 
-    // 1 SOC (Start of Conversion) para cada conversão
+    // 1 SOC (Start of Conversion) to each conversion
 
     // SOC0 com sinais de corrente
 
-    AdcaRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINA3
+    AdcaRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINA3 - Isec1
     AdcaRegs.ADCSOC0CTL.bit.ACQPS = acqps;
     AdcaRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
-    AdcaRegs.ADCSOC1CTL.bit.CHSEL = 4;              // ADCINA4
+    AdcaRegs.ADCSOC1CTL.bit.CHSEL = 4;              // ADCINA4 - Vdcprim
     AdcaRegs.ADCSOC1CTL.bit.ACQPS = acqps;
     AdcaRegs.ADCSOC1CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
-    AdcbRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINB3
+    AdcbRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINB3 - Isec2
     AdcbRegs.ADCSOC0CTL.bit.ACQPS = acqps;
     AdcbRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
-    AdcbRegs.ADCSOC1CTL.bit.CHSEL = 4;              // ADCINB4
+    AdcbRegs.ADCSOC1CTL.bit.CHSEL = 4;              // ADCINB4 - Vdcsec
     AdcbRegs.ADCSOC1CTL.bit.ACQPS = acqps;
     AdcbRegs.ADCSOC1CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
-    AdccRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINC3
+    AdccRegs.ADCSOC0CTL.bit.CHSEL = 3;              // ADCINC3 - Isec3
     AdccRegs.ADCSOC0CTL.bit.ACQPS = acqps;
     AdccRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
     // SOC0 maior prioridade por default, gera flag EOC (End of Conversion)
     // Cada SOC gera um RESULT, começa RESULT0
 
-    // Interrupção pós SOC1 do ADCA
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupação pós SOC1 gera INT1E (ADCA)
+    // Interrupção pós SOC0 do ADCA
+
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC0 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
-    // Interrupção pós SOC1 do ADCB
-    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupação pós SOC1 gera INT1E (ADCB)
-    AdcbRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
-    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
-
-    // Interrupção pós SOC0 do ADCC
-    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC1 gera INT1E (ADCC)
-    AdccRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
-    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
+//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupação pós SOC1 gera INT1E (ADCB)
+//    AdcbRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
+//    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
+//
+//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC0 gera INT1E (ADCC)
+//    AdccRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
+//    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
     EDIS;
 }

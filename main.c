@@ -39,9 +39,10 @@
  *
  *
  * TODO:
+ *  Verificar se 105kHz gerado com triangular (DAC1)
+ *  DAC com triangular (DAC2)
  *  Colocar CMPA como saida do controle
- *  Verificar se 105kHz gerado com triangular
- *  DAC com triangular
+ *  Bater o martelo sobre relação SOC/ADC
  *  Ponto fixo
  *
  */
@@ -52,10 +53,10 @@
 
 // Functions
 __interrupt void isr_adca(void);
-__interrupt void isr_adcb(void);
-__interrupt void isr_adcc(void);
+//__interrupt void isr_adcb(void);
+//__interrupt void isr_adcc(void);
 
-// Variaveis
+// Variables
 
 uint16_t count_led = 0;
 
@@ -81,19 +82,22 @@ int main(void)
 
     EALLOW;
 
-    PieVectTable.ADCA1_INT = &isr_adca;                      // Att interrupcao ADCA
-    PieVectTable.ADCB1_INT = &isr_adcb;                      // Att interrupcao
-    PieVectTable.ADCC1_INT = &isr_adcc;                      // Att interrupcao
+    PieVectTable.ADCA1_INT = &isr_adca;                      // Pointer for ADCA interruption
+//    PieVectTable.ADCB1_INT = &isr_adcb;                      // Pointer for ADCB interruption
+//    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
 
-    PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Habilita coluna ADC
+    PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Column ADCA
+    PieCtrlRegs.PIEIER1.bit.INTx2 = 1;                      // Column ADCB
+    PieCtrlRegs.PIEIER1.bit.INTx3 = 1;                      // Column ADCC
+
 
     EDIS;
-    IER |= M_INT1;                                          // Habilita linha do ADC
+    IER |= M_INT1;                                          // Line 1 ADC
 
-    // Setup GPIO
+    // GPIO Configuration
     Setup_GPIO();
 
-    // Configura PWM
+    // PWM Configuration
     Setup_ePWM1();
     Setup_ePWM2();
     Setup_ePWM3();
@@ -102,11 +106,11 @@ int main(void)
     Setup_ePWM6();
     Setup_ePWM10();
 
-    // Configura ADC
+    // ADC Configuration
     Setup_ADC();
 
     EINT;
-    ERTM;               // Com real time
+    ERTM;               // Real time
 
 
     GpioDataRegs.GPBDAT.bit.GPIO34 = 0;
@@ -119,38 +123,42 @@ int main(void)
     }
 }
 
-// Entra na primeira interrupcao e nao vem mais, erro deve estar na aquisicao
 __interrupt void isr_adca(void)
 {
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
+
     Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
     Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-    Float_Control (Isec1_SOC, Vdcprim_SOC);
 
-    AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
+    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
+    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
+
+    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
+
+    // Float_Control (Isec1_SOC, Vdcprim_SOC);              // Comment this line without control
+
+    AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 
     GpioDataRegs.GPBTOGGLE.bit.GPIO32 = 1;
 }
 
-// Nao chega na interrupcao
-__interrupt void isr_adcb(void)
-{
-    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
-    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
-
-    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
-}
-
-// Nao chega na interrupcao
-__interrupt void isr_adcc(void)
-{
-    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
-
-    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Limpa flat
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
-}
+//__interrupt void isr_adcb(void)
+//{
+//    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
+//    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
+//
+//    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                          // Clear flag
+//    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+//}
+//
+//__interrupt void isr_adcc(void)
+//{
+//    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
+//
+//    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                          // Clear flag
+//    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+//}
 
 
 
