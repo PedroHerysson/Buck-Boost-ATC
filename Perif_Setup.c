@@ -1,8 +1,6 @@
 /*
  * Perif_Setup.c
  *
- *
- *
  *  Created on: 24 de jun de 2024
  *      Author: emanu
  */
