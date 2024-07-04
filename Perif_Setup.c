@@ -9,7 +9,7 @@
 
 
 /*
- * @brief Função para configurar pino como GPIO
+ * @brief Funï¿½ï¿½o para configurar pino como GPIO
  * Pino GPIO, com resistor de pull-up e controlado via CPU1
  * @return none*/
 void Setup_GPIO(void)
@@ -369,7 +369,7 @@ void Setup_ePWM6(void)
 
 
 /*
- * @brief Função para configurar pulso para start do ADC
+ * @brief Funï¿½ï¿½o para configurar pulso para start do ADC
  *
  * @return none
  */
@@ -414,7 +414,7 @@ void Setup_ePWM10(void){
 }
 
 /*
- * @brief Função para configurar ADC
+ * @brief Funï¿½ï¿½o para configurar ADC
  * Start do ADCA, ADCB, ADCC no ePWM10
  * @return none
  */
@@ -422,8 +422,8 @@ void Setup_ADC()
 {
     Uint16 acqps;
 
-    // (12 bits - mínimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
-    // (16 bits - mínimo 320 ns) tSH = (63+1)*5 = 320 ns
+    // (12 bits - mï¿½nimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
+    // (16 bits - mï¿½nimo 320 ns) tSH = (63+1)*5 = 320 ns
     if(ADC_RESOLUTION_12BIT == AdcaRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdcbRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdccRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
@@ -433,19 +433,19 @@ void Setup_ADC()
     CpuSysRegs.PCLKCR13.bit.ADC_A = 1;              // SysRegs do ADCA
     CpuSysRegs.PCLKCR13.bit.ADC_B = 1;              // SysRegs do ADCB
     CpuSysRegs.PCLKCR13.bit.ADC_C = 1;              // SysRegs do ADCC
-    AdcaRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no máximo 50 MHz (prescale = 6: 200/4)
-    AdcbRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no máximo 50 MHz (prescale = 6: 200/4)
-    AdccRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no máximo 50 MHz (prescale = 6: 200/4)
+    AdcaRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no mï¿½ximo 50 MHz (prescale = 6: 200/4)
+    AdcbRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no mï¿½ximo 50 MHz (prescale = 6: 200/4)
+    AdccRegs.ADCCTL2.bit.PRESCALE = 6;              // ADC funciona com no mï¿½ximo 50 MHz (prescale = 6: 200/4)
 
     AdcSetMode(ADC_ADCA, ADC_RESOLUTION_12BIT, ADC_SIGNALMODE_SINGLE);
     AdcSetMode(ADC_ADCB, ADC_RESOLUTION_12BIT, ADC_SIGNALMODE_SINGLE);
     AdcSetMode(ADC_ADCC, ADC_RESOLUTION_12BIT, ADC_SIGNALMODE_SINGLE);
 
-    AdcaRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversão (1), amostragem (0)
+    AdcaRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversï¿½o (1), amostragem (0)
     AdcaRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCA
-    AdcbRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversão (1), amostragem (0)
+    AdcbRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversï¿½o (1), amostragem (0)
     AdcbRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCB
-    AdccRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversão (1), amostragem (0)
+    AdccRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversï¿½o (1), amostragem (0)
     AdccRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCC
     DELAY_US(1000);
 
@@ -474,21 +474,73 @@ void Setup_ADC()
     AdccRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
     // SOC0 maior prioridade por default, gera flag EOC (End of Conversion)
-    // Cada SOC gera um RESULT, começa RESULT0
+    // Cada SOC gera um RESULT, comeï¿½a RESULT0
 
-    // Interrupção pós SOC0 do ADCA
+    // Interrupï¿½ï¿½o pï¿½s SOC0 do ADCA
 
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC0 gera INT1E (ADCA)
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupaï¿½ï¿½o pï¿½s SOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
-//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupação pós SOC1 gera INT1E (ADCB)
+//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupaï¿½ï¿½o pï¿½s SOC1 gera INT1E (ADCB)
 //    AdcbRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 //
-//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupação pós SOC0 gera INT1E (ADCC)
+//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupaï¿½ï¿½o pï¿½s SOC0 gera INT1E (ADCC)
 //    AdccRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
+
+    EDIS;
+}
+
+
+/*
+ * @brief Closed loop function
+ *
+ * Isec_SOC: current measure from interruption
+ * Vdcprim_SOC: voltage measure from interruption
+ *
+ * @return none
+ */
+void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
+{
+    er[0] = ref - Vdcprim_SOC;
+    k[0] = (1.906*k[1])-(0.906*k[2])+(0.001594*er[0])+(0.00005655*er[1])-(0.001538*er[2]);
+    if(k[0]>1500) k[0] = 2000;
+    e[0] = k[0] - Isec1_SOC;        // retirado int(k[0])
+    u[0] = ((0.506*u[1])+(0.494*u[2])+(0.29*e[0])+(0.019*e[1])-(0.271*e[2]));
+    if(u[0] <= 0) u[0] = 0;
+    u[2]=u[1];
+    u[1]=u[0];
+    e[2]=e[1];
+    e[1]=e[0];
+    k[2]=k[1];
+    k[1]=k[0];
+    er[2]=er[1];
+    er[1]=er[0];
+    //out[0]=int(u[0]);
+}
+
+/*
+ * @brief DAC function
+ *
+ * @return none
+ */
+void Setup_DAC()
+{
+    EALLOW;
+
+    DacbRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
+    DacaRegs.DACCTL.all = 0x0001;               // DACREFSEL in ADC VREF
+
+    DacbRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
+    DacaRegs.DACVALS.all = 0x0800;              // DACVALS bits 11-0 (mid-rang)
+
+    DacbRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
+    DacaRegs.DACOUTEN.bit.DACOUTEN = 1;         // DAC enable
+
+    DacbRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
+    DacaRegs.DACLOCK.all = 0x0000;              // DAC unlock, 1 lock
 
     EDIS;
 }
