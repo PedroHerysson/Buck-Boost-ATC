@@ -112,13 +112,13 @@ int main(void)
     ERTM;               // Real time
 
 
-    GpioDataRegs.GPBDAT.bit.GPIO34 = 0;
+//    GpioDataRegs.GPBDAT.bit.GPIO34 = 0;
 
     while(1)
     {
-        for (count = 0; count < 0x00FFFFFF; count++)
-        {}
-        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+//        for (count = 0; count < 0x00FFFFFF; count++)
+//        {}
+//        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
     }
 }
 
