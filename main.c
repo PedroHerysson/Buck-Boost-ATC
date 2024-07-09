@@ -1,7 +1,6 @@
 /**
  * main.c
  *
- *
  * Bancada do Coversor Boost CCTE - AGT - Malha Fechada
  * Autores: Emanuel Mota e Pedro Herysson
  * Data: 24/06/24
