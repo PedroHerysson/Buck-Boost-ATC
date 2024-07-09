@@ -1,6 +1,7 @@
 /**
  * main.c
  *
+ *
  * Bancada do Coversor Boost CCTE - AGT - Malha Fechada
  * Autores: Emanuel Mota e Pedro Herysson
  * Data: 24/06/24
@@ -37,22 +38,27 @@
  * ADCINB4 -> Vdcsec    (DevKit J7 68 - ADC)
  * ADCINA4 -> Vdcprim   (DevKit J7 69 - ADC)
  *
+ * DACOUTA -> PWM10     (DevKit J3 30 - Triangule from ADC Trigger)
+ * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
- *  Verificar se 105kHz gerado com triangular (DAC1)
- *  DAC com triangular (DAC2)
- *  Colocar CMPA como saida do controle
- *  Bater o martelo sobre rela��o SOC/ADC
+ *  EPWM10 e EPWM4 nao estao sincronizados
+ *  Nao reconhece registrador CMPA na rotina float_control
+ *  Bater o martelo sobre relacao SOC/ADC
  *  Ponto fixo
+ *  Filtro ADC
  *
  */
 
 #include "Perif_Setup.h"
 
-// Fun��es
+// Definitions
+
 __interrupt void isr_adca(void);
 //__interrupt void isr_adcb(void);
 //__interrupt void isr_adcc(void);
+
+__interrupt void isr_timer0(void);
 
 // Variables
 
@@ -63,6 +69,8 @@ uint16_t Isec2_SOC = 0;
 uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
 uint16_t Vdcprim_SOC = 0;
+
+uint16_t CL_DC = 0;
 
 int main(void)
 {
@@ -81,17 +89,25 @@ int main(void)
 
     EALLOW;
 
-    PieVectTable.ADCA1_INT = &isr_adca;                      // Pointer for ADCA interruption
+    PieVectTable.ADCA1_INT = &isr_adca;                     // Pointer for ADCA interruption
 //    PieVectTable.ADCB1_INT = &isr_adcb;                      // Pointer for ADCB interruption
-//    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
+    //    PieVectTable.ADCC1_INT = &isr_adcc;                      // Pointer for ADCC interruption
+    PieVectTable.TIMER0_INT = &isr_timer0;                  // Pointer to TIMER0 interruption
 
     PieCtrlRegs.PIEIER1.bit.INTx1 = 1;                      // Column ADCA
     PieCtrlRegs.PIEIER1.bit.INTx2 = 1;                      // Column ADCB
     PieCtrlRegs.PIEIER1.bit.INTx3 = 1;                      // Column ADCC
 
+    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;                      // Column TIM0
+
 
     EDIS;
-    IER |= M_INT1;                                          // Line 1 ADC
+    IER |= M_INT1;                                          // Line 1 ADC, TIMTER 0
+
+    // TTMER 0 Configuration
+    InitCpuTimers();
+    ConfigCpuTimer(&CpuTimer0, 200, 1000000);               // CPU1, CLK, TIME
+    CpuTimer0Regs.TCR.all = 0x400;                          // Habilita interrupcao
 
     // GPIO Configuration
     Setup_GPIO();
@@ -108,6 +124,9 @@ int main(void)
     // ADC Configuration
     Setup_ADC();
 
+    // DAC Configuration
+    Setup_DAC();
+
     EINT;
     ERTM;               // Real time
 
@@ -116,9 +135,14 @@ int main(void)
 
     while(1)
     {
-//        for (count = 0; count < 0x00FFFFFF; count++)
-//        {}
-//        GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
+        // PWM ATT
+        EPwm4Regs.CMPA.bit.CMPA = CL_DC;
+        EPwm5Regs.CMPA.bit.CMPA = CL_DC;
+        EPwm6Regs.CMPA.bit.CMPA = CL_DC;
+
+        // DAC Plot
+        DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus) - DACOUTA
+        DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem - DACOUTB
     }
 }
 
@@ -134,7 +158,7 @@ __interrupt void isr_adca(void)
 
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
 
-    // Float_Control (Isec1_SOC, Vdcprim_SOC);              // Comment this line without control
+    CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
@@ -159,7 +183,11 @@ __interrupt void isr_adca(void)
 //    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
 //}
 
+__interrupt void isr_timer0(void)
+{
+    // Cada ciclo de clock vai atualizar o valor do dac
 
+}
 
 
 

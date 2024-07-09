@@ -10,8 +10,11 @@
 
 #include "F28x_Project.h"
 
+// Setup Routines
+
 void Setup_GPIO(void);
 void Setup_ADC(void);
+void Setup_DAC(void);
 void Setup_ePWM10(void);
 void Setup_ePWM1(void);
 void Setup_ePWM2(void);
@@ -19,5 +22,14 @@ void Setup_ePWM3(void);
 void Setup_ePWM4(void);
 void Setup_ePWM5(void);
 void Setup_ePWM6(void);
+
+// Protections Routines
+
+void Off_ePWMs(void);
+
+// Control Routines
+
+int Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC);
+int Filter_ADC (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC, uint16_t Isec2_SOC, uint16_t Vdcsec_SOC, uint16_t Isec3_SOC);
 
 #endif /* PERIF_SETUP_H_ */
