@@ -46,6 +46,7 @@
  *  Nao reconhece registrador CMPA na rotina float_control
  *  Bater o martelo sobre relacao SOC/ADC
  *  Ponto fixo
+ *  Filtro ADC
  *
  */
 
@@ -69,7 +70,7 @@ uint16_t Isec3_SOC = 0;
 uint16_t Vdcsec_SOC = 0;
 uint16_t Vdcprim_SOC = 0;
 
-uint16_t x = 1000;
+uint16_t CL_DC = 0;
 
 int main(void)
 {
@@ -134,8 +135,14 @@ int main(void)
 
     while(1)
     {
-        DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus)
-        DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem
+        // PWM ATT
+        EPwm4Regs.CMPA.bit.CMPA = CL_DC;
+        EPwm5Regs.CMPA.bit.CMPA = CL_DC;
+        EPwm6Regs.CMPA.bit.CMPA = CL_DC;
+
+        // DAC Plot
+        DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus) - DACOUTA
+        DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem - DACOUTB
     }
 }
 
@@ -151,7 +158,7 @@ __interrupt void isr_adca(void)
 
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
 
-    // Float_Control (Isec1_SOC, Vdcprim_SOC);              // Comment this line without control
+    CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;

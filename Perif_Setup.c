@@ -8,16 +8,16 @@
 #include "Perif_Setup.h"
 
 
-#define OL_DC 814U
+#define OL_DC 814U                  // Open Loop Signal Control
 
-#define ref 2520U
+#define ref 2520U                   // Voltage Reference
+
+#define points 4                    // Points of Move Mean Filter
 
 float u[3] = {0,0,0};
 float e[3] = {0,0,0};
 float k[3] = {0,0,0};
 float er[3] = {0,0,0};
-
-uint16_t CL_DC = 0;
 
 /*
  * @brief Fun��o para configurar pino como GPIO
@@ -508,9 +508,9 @@ void Setup_ADC()
  * Isec_SOC: current measure from interruption
  * Vdcprim_SOC: voltage measure from interruption
  *
- * @return none
+ * @return u[0] -> Control Signal
  */
-void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
+int Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
 {
     er[0] = ref - Vdcprim_SOC;
     k[0] = (1.906*k[1])-(0.906*k[2])+(0.001594*er[0])+(0.00005655*er[1])-(0.001538*er[2]);
@@ -526,7 +526,20 @@ void Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
     k[1]=k[0];
     er[2]=er[1];
     er[1]=er[0];
+    return (int)u[0];
     // EPwm4Regs.CMPA.bit.CMPA=int(u[0]);
+}
+
+/*
+ * @brief ADC Filter
+ *
+ * Move mean filter with "points" variable
+ *
+ * @return Signals filtered
+ */
+int Filter_ADC (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC, uint16_t Isec2_SOC, uint16_t Vdcsec_SOC, uint16_t Isec3_SOC)
+{
+
 }
 
 /*
