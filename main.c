@@ -41,11 +41,11 @@
  * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
+ *  Correções na placa: 5V, ganho unitário no diferencial, trocar trimpot de 1 M
+ *  Validar filtro do ADC
  *  EPWM10 e EPWM4 nao estao sincronizados
- *  Nao reconhece registrador CMPA na rotina float_control
  *  Bater o martelo sobre relacao SOC/ADC
  *  Ponto fixo
- *  Filtro ADC
  *
  */
 
@@ -63,11 +63,11 @@ __interrupt void isr_timer0(void);
 
 uint16_t count_led = 0;
 
-uint16_t Isec1_SOC = 0;             // Variaveis que recebem SOC
-uint16_t Isec2_SOC = 0;
-uint16_t Isec3_SOC = 0;
-uint16_t Vdcsec_SOC = 0;
-uint16_t Vdcprim_SOC = 0;
+uint16_t Isec1_SOC, Isec1_Filt = 0;             // SOC and Filter Signals
+uint16_t Isec2_SOC, Isec2_Filt = 0;
+uint16_t Isec3_SOC, Isec3_Filt = 0;
+uint16_t Vdcprim_SOC, Vdcprim_Filt = 0;
+uint16_t Vdcsec_SOC, Vdcsec_Filt = 0;
 
 uint16_t CL_DC = 0;
 
@@ -151,13 +151,17 @@ __interrupt void isr_adca(void)
 
     Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
     Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-
     Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
     Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
-
     Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
 
-    CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
+    Isec1_Filt = Filter_ADC(Isec1_SOC);                     // Signals filtered by move mean filter
+    Isec2_Filt = Filter_ADC(Isec2_SOC);
+    Isec3_Filt = Filter_ADC(Isec3_SOC);
+    Vdcprim_Filt = Filter_ADC(Vdcprim_SOC);
+    Vdcsec_Filt = Filter_ADC(Vdcsec_SOC);
+
+    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;

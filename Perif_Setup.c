@@ -19,6 +19,13 @@ float e[3] = {0,0,0};
 float k[3] = {0,0,0};
 float er[3] = {0,0,0};
 
+uint16_t Aux_points = 0;
+
+uint16_t Mean[points];
+
+uint16_t Filt;
+int Aux_filt = 0;
+
 /*
  * @brief Fun��o para configurar pino como GPIO
  * Pino GPIO, com resistor de pull-up e controlado via CPU1
@@ -510,12 +517,12 @@ void Setup_ADC()
  *
  * @return u[0] -> Control Signal
  */
-int Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
+int Float_Control (uint16_t Current, uint16_t Voltage)
 {
-    er[0] = ref - Vdcprim_SOC;
+    er[0] = ref - Voltage;
     k[0] = (1.906*k[1])-(0.906*k[2])+(0.001594*er[0])+(0.00005655*er[1])-(0.001538*er[2]);
     if(k[0]>1500) k[0] = 2000;
-    e[0] = k[0] - Isec1_SOC;        // retirado int(k[0])
+    e[0] = k[0] - Current;        // retirado int(k[0])
     u[0] = ((0.506*u[1])+(0.494*u[2])+(0.29*e[0])+(0.019*e[1])-(0.271*e[2]));
     if(u[0] <= 0) u[0] = 0;
     u[2]=u[1];
@@ -535,11 +542,24 @@ int Float_Control (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC)
  *
  * Move mean filter with "points" variable
  *
- * @return Signals filtered
+ * @return Signal filtered
  */
-int Filter_ADC (uint16_t Isec1_SOC, uint16_t Vdcprim_SOC, uint16_t Isec2_SOC, uint16_t Vdcsec_SOC, uint16_t Isec3_SOC)
+int Filter_ADC (uint16_t Scan_SOC)
 {
 
+    if(Aux_points >= points)
+    {
+        for (Aux_filt = 0; Aux_filt<=points; Aux_filt++) Filt = Mean[Aux_filt] + Filt;
+        Aux_points = 0;
+        Filt = (int) Filt >> 2;
+    }
+    else
+    {
+        Aux_points++;
+        Mean[Aux_points] = Scan_SOC;
+    }
+
+    return Filt;
 }
 
 /*
