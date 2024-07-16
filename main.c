@@ -41,7 +41,6 @@
  * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
- *  Correções na placa: 5V, ganho unitário no diferencial, trocar trimpot de 1 M
  *  Validar filtro do ADC
  *  EPWM10 e EPWM4 nao estao sincronizados
  *  Bater o martelo sobre relacao SOC/ADC
