@@ -135,9 +135,9 @@ int main(void)
     while(1)
     {
         // PWM ATT
-        EPwm4Regs.CMPA.bit.CMPA = CL_DC;
-        EPwm5Regs.CMPA.bit.CMPA = CL_DC;
-        EPwm6Regs.CMPA.bit.CMPA = CL_DC;
+//        EPwm4Regs.CMPA.bit.CMPA = CL_DC;
+//        EPwm5Regs.CMPA.bit.CMPA = CL_DC;
+//        EPwm6Regs.CMPA.bit.CMPA = CL_DC;
 
         // DAC Plot
         DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus) - DACOUTA
@@ -150,18 +150,17 @@ __interrupt void isr_adca(void)
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
 
     Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
-    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
-    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
-    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
-
     Isec1_Filt = Filter_ADC(Isec1_SOC);                     // Signals filtered by move mean filter
-    Isec2_Filt = Filter_ADC(Isec2_SOC);
-    Isec3_Filt = Filter_ADC(Isec3_SOC);
+    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
     Vdcprim_Filt = Filter_ADC(Vdcprim_SOC);
+    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
+    Isec2_Filt = Filter_ADC(Isec2_SOC);
+    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
     Vdcsec_Filt = Filter_ADC(Vdcsec_SOC);
+    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
+    Isec3_Filt = Filter_ADC(Isec3_SOC);
 
-    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
+//    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;

@@ -8,8 +8,8 @@
 #include "Perif_Setup.h"
 
 
-#define OL_DC 814U                  // Open Loop Signal Control
-
+//#define OL_DC 814U                  // Open Loop Signal Control
+#define OL_DC 71U                  // Open Loop Signal Contro
 #define ref 2520U                   // Voltage Reference
 
 #define points 4                    // Points of Move Mean Filter
@@ -438,8 +438,8 @@ void Setup_ADC()
 {
     Uint16 acqps;
 
-    // (12 bits - m�nimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
-    // (16 bits - m�nimo 320 ns) tSH = (63+1)*5 = 320 ns
+    // (12 bits - minimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
+    // (16 bits - minimo 320 ns) tSH = (63+1)*5 = 320 ns
     if(ADC_RESOLUTION_12BIT == AdcaRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdcbRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdccRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
@@ -457,11 +457,11 @@ void Setup_ADC()
     AdcSetMode(ADC_ADCB, ADC_RESOLUTION_12BIT, ADC_SIGNALMODE_SINGLE);
     AdcSetMode(ADC_ADCC, ADC_RESOLUTION_12BIT, ADC_SIGNALMODE_SINGLE);
 
-    AdcaRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da convers�o (1), amostragem (0)
+    AdcaRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversao (1), amostragem (0)
     AdcaRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCA
-    AdcbRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da convers�o (1), amostragem (0)
+    AdcbRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversao (1), amostragem (0)
     AdcbRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCB
-    AdccRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da convers�o (1), amostragem (0)
+    AdccRegs.ADCCTL1.bit.INTPULSEPOS = 1;           // Flag ao final da conversao (1), amostragem (0)
     AdccRegs.ADCCTL1.bit.ADCPWDNZ = 1;              // Power ADCC
     DELAY_US(1000);
 
@@ -490,9 +490,9 @@ void Setup_ADC()
     AdccRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
     // SOC0 maior prioridade por default, gera flag EOC (End of Conversion)
-    // Cada SOC gera um RESULT, come�a RESULT0
+    // Cada SOC gera um RESULT, comeca RESULT0
 
-    // Interrup��o p�s SOC0 do ADCA
+    // Interrupcao p�s SOC0 do ADCA
 
     AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupa��o p�s SOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
@@ -558,7 +558,6 @@ int Filter_ADC (uint16_t Scan_SOC)
         Aux_points++;
         Mean[Aux_points] = Scan_SOC;
     }
-
     return Filt;
 }
 
