@@ -10,6 +10,8 @@
 
 #define OL_DC 814U                  // Open Loop Signal Control
 
+#define OL_1DC
+
 #define ref 2520U                   // Voltage Reference
 
 #define points 4                    // Points of Move Mean Filter
@@ -430,7 +432,7 @@ void Setup_ePWM10(void){
 }
 
 /*
- * @brief Fun��o para configurar ADC
+ * @brief Funcao para configurar ADC
  * Start do ADCA, ADCB, ADCC no ePWM10
  * @return none
  */
@@ -438,8 +440,8 @@ void Setup_ADC()
 {
     Uint16 acqps;
 
-    // (12 bits - m�nimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
-    // (16 bits - m�nimo 320 ns) tSH = (63+1)*5 = 320 ns
+    // (12 bits - minimo 75 ns) tSH = (ACQPS+1)*SYSCLK = (14+1)*5 = 75 ns
+    // (16 bits - minimo 320 ns) tSH = (63+1)*5 = 320 ns
     if(ADC_RESOLUTION_12BIT == AdcaRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdcbRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
     if(ADC_RESOLUTION_12BIT == AdccRegs.ADCCTL2.bit.RESOLUTION) acqps = 14; else acqps = 63;
@@ -490,19 +492,19 @@ void Setup_ADC()
     AdccRegs.ADCSOC0CTL.bit.TRIGSEL = 0x17;         // Start ePWM10
 
     // SOC0 maior prioridade por default, gera flag EOC (End of Conversion)
-    // Cada SOC gera um RESULT, come�a RESULT0
+    // Cada SOC gera um RESULT, comeca RESULT0
 
-    // Interrup��o p�s SOC0 do ADCA
+    // InterrupcaoSOC0 do ADCA
 
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupa��o p�s SOC1 gera INT1E (ADCA)
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // InterrupcaoSOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
-//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupa��o p�s SOC1 gera INT1E (ADCB)
+//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupcao SOC1 gera INT1E (ADCB)
 //    AdcbRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 //
-//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupa��o p�s SOC0 gera INT1E (ADCC)
+//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupcao SOC0 gera INT1E (ADCC)
 //    AdccRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
@@ -547,19 +549,33 @@ int Float_Control (uint16_t Current, uint16_t Voltage)
 int Filter_ADC (uint16_t Scan_SOC)
 {
 
-    if(Aux_points >= points)
+    if(Aux_points<=3)
     {
-        for (Aux_filt = 0; Aux_filt<=points; Aux_filt++) Filt = Mean[Aux_filt] + Filt;
-        Aux_points = 0;
-        Filt = (int) Filt >> 2;
-    }
-    else
-    {
-        Aux_points++;
         Mean[Aux_points] = Scan_SOC;
+        Filt = (int) Filt + Mean[Aux_points];
     }
+    if(Aux_points==4)
+    {
+        Filt = (int) Filt >> 2;         // Divider by 4
+        Aux_filt = Filt;
+        Aux_points = 0;
+    }
+    Aux_points++;
 
-    return Filt;
+//    if(Aux_points >= points)
+//    {
+//        for (Aux_filt = 0; Aux_filt<=points; Aux_filt++) Filt = Mean[Aux_filt] + Filt;
+//        Aux_points = 0;
+//        Filt = (int) Filt >> 2;
+//    }
+//    else
+//    {
+//        Aux_points++;
+//        Mean[Aux_points] = Scan_SOC;
+//        Filt = (int) Scan_SOC;
+//    }
+
+    return Aux_filt;
 }
 
 /*
