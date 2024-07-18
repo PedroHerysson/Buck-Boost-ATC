@@ -19,12 +19,16 @@ float e[3] = {0,0,0};
 float k[3] = {0,0,0};
 float er[3] = {0,0,0};
 
-uint16_t Aux_points = 0;
+uint16_t Aux_points;
+uint16_t Aux_points2;
 
 uint16_t Mean[points];
+uint16_t Mean2[points];
 
 uint16_t Filt;
-int Aux_filt = 0;
+uint16_t Filt2;
+uint16_t Aux_filt;
+uint16_t Aux_filt2;
 
 /*
  * @brief Fun��o para configurar pino como GPIO
@@ -544,21 +548,39 @@ int Float_Control (uint16_t Current, uint16_t Voltage)
  *
  * @return Signal filtered
  */
-int Filter_ADC (uint16_t Scan_SOC)
+uint16_t Filter_ADC1 (uint16_t Scan_SOC1)
 {
-
-    if(Aux_points >= points)
-    {
-        for (Aux_filt = 0; Aux_filt<=points; Aux_filt++) Filt = Mean[Aux_filt] + Filt;
-        Aux_points = 0;
-        Filt = (int) Filt >> 2;
+    for (Aux_points = points-1; Aux_points>0; Aux_points--) Mean[Aux_points] = Mean[Aux_points-1]; //Desloca para esquerda
+    Mean[0] = Scan_SOC1; // Novo valor para posicao 0
+    Aux_filt = 0;
+    for (Aux_points = 0; Aux_points<points; Aux_points++){
+        Aux_filt = Aux_filt+Mean[Aux_points]; // Soma
     }
-    else
-    {
-        Aux_points++;
-        Mean[Aux_points] = Scan_SOC;
-    }
+    Filt = Aux_filt/4; // Media
     return Filt;
+//    if(Aux_points == 4)
+//    {
+//        Filt = (int) Aux_filt >> 2;
+//        Aux_points = 0;
+//    }
+//    else
+//    {
+//        Mean[Aux_points] = Scan_SOC1;                       // Preenche valores do result
+//        Aux_filt = Mean[Aux_points] + Aux_filt;     // Faz a soma ponto a ponto
+//        Aux_points++;
+//    }
+//    return Filt;
+}
+uint16_t Filter_ADC2 (uint16_t Scan_SOC2)
+{
+    for (Aux_points2 = points-1; Aux_points2>0; Aux_points--) Mean2[Aux_points2] = Mean2[Aux_points2-1]; //Desloca para esquerda
+    Mean2[0] = Scan_SOC2; // Novo valor para posicao 0
+    Aux_filt2 = 0;
+    for (Aux_points2 = 0; Aux_points2<points; Aux_points2++){
+        Aux_filt2 = Aux_filt2+Mean[Aux_points]; // Soma
+    }
+    Filt2 = Aux_filt2/4; // Media
+    return Filt2;
 }
 
 /*

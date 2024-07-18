@@ -30,6 +30,7 @@ void Off_ePWMs(void);
 // Control Routines
 
 int Float_Control (uint16_t Current, uint16_t Voltage);
-int Filter_ADC (uint16_t Scan_SOC);
+uint16_t Filter_ADC1 (uint16_t Scan_SOC1);
+uint16_t Filter_ADC2 (uint16_t Scan_SOC2);
 
 #endif /* PERIF_SETUP_H_ */

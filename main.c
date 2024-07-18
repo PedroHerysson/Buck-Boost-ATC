@@ -60,12 +60,19 @@ __interrupt void isr_timer0(void);
 
 // Variables
 
+uint16_t aux_start = 0;                         // Auxiliar para 100 valores iniciais
+uint32_t aux_buffer = 0;
+uint16_t aux_media = 0;
+uint32_t buffer[100];
+uint32_t media = 0;
+uint16_t i = 0;
+
 uint16_t count_led = 0;
 
-uint16_t Isec1_SOC, Isec1_Filt = 0;             // SOC and Filter Signals
+uint16_t Isec1_SOC, Isec1_Filt;             // SOC and Filter Signals
 uint16_t Isec2_SOC, Isec2_Filt = 0;
 uint16_t Isec3_SOC, Isec3_Filt = 0;
-uint16_t Vdcprim_SOC, Vdcprim_Filt = 0;
+uint16_t Vdcprim_SOC, Vdcprim_Filt;
 uint16_t Vdcsec_SOC, Vdcsec_Filt = 0;
 
 uint16_t CL_DC = 0;
@@ -148,16 +155,30 @@ __interrupt void isr_adca(void)
 {
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
 
-    Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
-    Isec1_Filt = Filter_ADC(Isec1_SOC);                     // Signals filtered by move mean filter
-    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-    Vdcprim_Filt = Filter_ADC(Vdcprim_SOC);
-    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
-    Isec2_Filt = Filter_ADC(Isec2_SOC);
-    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
-    Vdcsec_Filt = Filter_ADC(Vdcsec_SOC);
-    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
-    Isec3_Filt = Filter_ADC(Isec3_SOC);
+    if (aux_media == 100)
+    {
+        media = aux_buffer/100;
+        aux_media = 0;
+        aux_buffer =0;
+        for(i=0;i<100;i++){
+            buffer[i] = 0;
+        }
+        //Isec1_Filt = Filter_ADC1(Isec1_SOC);                     // Signals filtered by move mean filter
+    }
+    else
+    {
+        buffer[aux_media] = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
+        aux_buffer = aux_buffer + buffer[aux_media];
+        aux_media++;
+    }
+        //    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
+//    Vdcprim_Filt = Filter_ADC1(Vdcprim_SOC);
+//    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
+////    Isec2_Filt = Filter_ADC3(Isec2_SOC);
+//    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
+////    Vdcsec_Filt = Filter_ADC4(Vdcsec_SOC);
+//    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
+////    Isec3_Filt = Filter_ADC5(Isec3_SOC);
 
 //    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
 
