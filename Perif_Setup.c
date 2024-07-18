@@ -10,7 +10,18 @@
 
 #define OL_DC 814U                  // Open Loop Signal Control
 
-#define OL_1DC
+// Gain Curve Parameters, Vomax = 1260 V
+#define GC_DC1 114U
+#define GC_DC2 243U
+#define GC_DC3 357U
+#define GC_DC4 471U
+#define GC_DC5 600U
+#define GC_DC6 714U
+#define GC_DC7 828U
+#define GC_DC8 957U
+#define GC_DC9 1071U
+#define GC_DC10 1185U
+#define GC_DC11 1314U
 
 #define ref 2520U                   // Voltage Reference
 

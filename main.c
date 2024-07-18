@@ -41,7 +41,9 @@
  * DACOUTB -> PWM6      (DevKit J7 70 - Triangule from PWM Modulation)
  *
  * TODO:
- *  Validar filtro do ADC
+ *  Ajustar filtro ADC para tensao, ta bugado
+ *  Atualizar equações das diferencas
+ *  Verificar DC maximo considerando o capacitor de 1260 V (talvez tenha capacitor de 1,2kV, limitando para 1800 V)
  *  EPWM10 e EPWM4 nao estao sincronizados
  *  Bater o martelo sobre relacao SOC/ADC
  *  Ponto fixo
@@ -51,6 +53,8 @@
 #include "Perif_Setup.h"
 
 // Definitions
+//    offset 2242: merge branch dia 18/07 17:40
+#define offset_Isec1 2242U
 
 __interrupt void isr_adca(void);
 //__interrupt void isr_adcb(void);
@@ -155,23 +159,26 @@ __interrupt void isr_adca(void)
 {
     GpioDataRegs.GPBDAT.bit.GPIO32 = 0;
 
-    if (aux_media == 100)
-    {
-        media = aux_buffer/100;
-        aux_media = 0;
-        aux_buffer =0;
-        for(i=0;i<100;i++){
-            buffer[i] = 0;
-        }
-        //Isec1_Filt = Filter_ADC1(Isec1_SOC);                     // Signals filtered by move mean filter
-    }
-    else
-    {
-        buffer[aux_media] = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
-        aux_buffer = aux_buffer + buffer[aux_media];
-        aux_media++;
-    }
-        //    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
+
+//    if (aux_media == 100)
+//    {
+//        media = aux_buffer/100;
+//        aux_media = 0;
+//        aux_buffer =0;
+//        for(i=0;i<100;i++){
+//            buffer[i] = 0;
+//        }
+//    }
+//    else
+//    {
+//        buffer[aux_media] = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
+//        aux_buffer = aux_buffer + buffer[aux_media];
+//        aux_media++;
+//    }
+
+    Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
+    Isec1_Filt = Filter_ADC1(Isec1_SOC) - offset_Isec1;     // Signals filtered by move mean filter and without offset
+    Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
 //    Vdcprim_Filt = Filter_ADC1(Vdcprim_SOC);
 //    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
 ////    Isec2_Filt = Filter_ADC3(Isec2_SOC);
@@ -187,23 +194,6 @@ __interrupt void isr_adca(void)
 
     GpioDataRegs.GPBTOGGLE.bit.GPIO32 = 1;
 }
-
-//__interrupt void isr_adcb(void)
-//{
-//    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
-//    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
-//
-//    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                          // Clear flag
-//    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
-//}
-//
-//__interrupt void isr_adcc(void)
-//{
-//    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
-//
-//    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                          // Clear flag
-//    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
-//}
 
 __interrupt void isr_timer0(void)
 {
