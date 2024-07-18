@@ -8,8 +8,10 @@
 #include "Perif_Setup.h"
 
 
-//#define OL_DC 814U                  // Open Loop Signal Control
-#define OL_DC 71U                  // Open Loop Signal Contro
+#define OL_DC 814U                  // Open Loop Signal Control
+
+#define OL_1DC
+
 #define ref 2520U                   // Voltage Reference
 
 #define points 4                    // Points of Move Mean Filter
@@ -434,7 +436,7 @@ void Setup_ePWM10(void){
 }
 
 /*
- * @brief Fun��o para configurar ADC
+ * @brief Funcao para configurar ADC
  * Start do ADCA, ADCB, ADCC no ePWM10
  * @return none
  */
@@ -498,15 +500,15 @@ void Setup_ADC()
 
     // Interrupcao p�s SOC0 do ADCA
 
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupa��o p�s SOC1 gera INT1E (ADCA)
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // InterrupcaoSOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
-//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupa��o p�s SOC1 gera INT1E (ADCB)
+//    AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // Interrupcao SOC1 gera INT1E (ADCB)
 //    AdcbRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 //
-//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupa��o p�s SOC0 gera INT1E (ADCC)
+//    AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // Interrupcao SOC0 gera INT1E (ADCC)
 //    AdccRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
 //    AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
