@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS
+CG_TOOL_ROOT := C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -134,10 +134,16 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-Bancada_Boost_AGT_2024.out 
+Bancada_Boost_AGT_2024.out \
 
 EXE_OUTPUTS__QUOTED += \
-"Bancada_Boost_AGT_2024.out" 
+"Bancada_Boost_AGT_2024.out" \
+
+BIN_OUTPUTS += \
+Bancada_Boost_AGT_2024.hex \
+
+BIN_OUTPUTS__QUOTED += \
+"Bancada_Boost_AGT_2024.hex" \
 
 
 # All Target
@@ -146,15 +152,21 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 
 # Tool invocations
 Bancada_Boost_AGT_2024.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@echo 'Building target: "$@"'
+	@echo 'Building target: $@'
 	@echo 'Invoking: C2000 Linker'
-	"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/bin/cl2000" -v28 -ml -mt --cla_support=cla1 --float_support=fpu32 --tmu_support=tmu0 --vcu_support=vcu2 --advice:performance=all --define=CPU1 --define=_LAUNCHXL_F28379D -g --diag_warning=225 --diag_wrap=off --display_error_number -z -m"Bancada_Boost_AGT_2024.map" --stack_size=0x200 --warn_sections -i"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/lib" -i"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include" --reread_libs --diag_wrap=off --display_error_number --xml_link_info="Bancada_Boost_AGT_2024_linkInfo.xml" --rom_model -o "Bancada_Boost_AGT_2024.out" $(ORDERED_OBJS)
-	@echo 'Finished building target: "$@"'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/bin/cl2000" -v28 -ml -mt --cla_support=cla1 --float_support=fpu32 --tmu_support=tmu0 --vcu_support=vcu2 --advice:performance=all --define=CPU1 --define=_LAUNCHXL_F28379D -g --diag_warning=225 --diag_wrap=off --display_error_number -z -m"Bancada_Boost_AGT_2024.map" --stack_size=0x200 --warn_sections -i"C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/lib" -i"C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/include" --reread_libs --diag_wrap=off --display_error_number --xml_link_info="Bancada_Boost_AGT_2024_linkInfo.xml" --rom_model -o "Bancada_Boost_AGT_2024.out" $(ORDERED_OBJS)
+	@echo 'Finished building target: $@'
+	@echo ' '
+
+Bancada_Boost_AGT_2024.hex: $(EXE_OUTPUTS)
+	@echo 'Invoking: C2000 Hex Utility'
+	"C:/ti/ccsv7/tools/compiler/ti-cgt-c2000_16.9.4.LTS/bin/hex2000"  -o "Bancada_Boost_AGT_2024.hex" $(EXE_OUTPUTS__QUOTED)
+	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXE_OUTPUTS__QUOTED)
+	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
 	-$(RM) "F2837xD_Adc.obj" "F2837xD_CodeStartBranch.obj" "F2837xD_CpuTimers.obj" "F2837xD_DefaultISR.obj" "F2837xD_Dma.obj" "F2837xD_EPwm.obj" "F2837xD_GlobalVariableDefs.obj" "F2837xD_Gpio.obj" "F2837xD_PieCtrl.obj" "F2837xD_PieVect.obj" "F2837xD_SysCtrl.obj" "F2837xD_usDelay.obj" "Perif_Setup.obj" "main.obj" 
 	-$(RM) "F2837xD_Adc.d" "F2837xD_CpuTimers.d" "F2837xD_DefaultISR.d" "F2837xD_Dma.d" "F2837xD_EPwm.d" "F2837xD_GlobalVariableDefs.d" "F2837xD_Gpio.d" "F2837xD_PieCtrl.d" "F2837xD_PieVect.d" "F2837xD_SysCtrl.d" "Perif_Setup.d" "main.d" 
 	-$(RM) "F2837xD_CodeStartBranch.d" "F2837xD_usDelay.d" 

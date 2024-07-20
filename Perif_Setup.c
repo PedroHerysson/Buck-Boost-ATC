@@ -284,7 +284,8 @@ void Setup_ePWM4(void)
     EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm4Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm4Regs.CMPA.bit.CMPA = OL_DC;                      // 0,57 (814)
+    EPwm4Regs.CMPA.bit.CMPA = 1;                      // 0,57 (814)
+//    EPwm4Regs.CMPA.bit.CMPA = OL_DC;                      // 0,57 (814)
 
     EPwm4Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm4Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -331,7 +332,8 @@ void Setup_ePWM5(void)
     EPwm5Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm5Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm5Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
+    EPwm5Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
+//    EPwm5Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm5Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm5Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -378,7 +380,8 @@ void Setup_ePWM6(void)
     EPwm6Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm6Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm6Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
+    EPwm6Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
+//    EPwm6Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm6Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm6Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
@@ -537,11 +540,17 @@ void Setup_ADC()
 int Float_Control (uint16_t Current, uint16_t Voltage)
 {
     er[0] = ref - Voltage;
-    k[0] = (1.906*k[1])-(0.906*k[2])+(0.001594*er[0])+(0.00005655*er[1])-(0.001538*er[2]);
-    if(k[0]>1500) k[0] = 2000;
-    e[0] = k[0] - Current;        // retirado int(k[0])
-    u[0] = ((0.506*u[1])+(0.494*u[2])+(0.29*e[0])+(0.019*e[1])-(0.271*e[2]));
+    k[0] = (1.9052*k[1])-(0.9052*k[2])+(0.0012*er[0])+(0.00004326*er[1])-(0.0012*er[2]);
+
+    if(k[0]>200) k[0] = 200;
+
+//    e[0] = k[0] - Current;        // retirado int(k[0])
+    e[0] = 153 - Current;        // retirado int(k[0])
+    u[0] = ((0.5016*u[1])+(0.4984*u[2])+(0.7596*e[0])+(0.0486*e[1])-(0.711*e[2]));
+
     if(u[0] <= 0) u[0] = 0;
+    if(u[0] >= 952) u[0] = 952;
+
     u[2]=u[1];
     u[1]=u[0];
     e[2]=e[1];
@@ -551,7 +560,6 @@ int Float_Control (uint16_t Current, uint16_t Voltage)
     er[2]=er[1];
     er[1]=er[0];
     return (int)u[0];
-    // EPwm4Regs.CMPA.bit.CMPA=int(u[0]);
 }
 
 /*

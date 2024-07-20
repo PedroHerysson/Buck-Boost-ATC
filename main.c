@@ -64,12 +64,12 @@ __interrupt void isr_timer0(void);
 
 // Variables
 
-uint16_t aux_start = 0;                         // Auxiliar para 100 valores iniciais
-uint32_t aux_buffer = 0;
-uint16_t aux_media = 0;
-uint32_t buffer[100];
-uint32_t media = 0;
-uint16_t i = 0;
+//uint16_t aux_start = 0;                         // Auxiliar para 100 valores iniciais
+//uint32_t aux_buffer = 0;
+//uint16_t aux_media = 0;
+//uint32_t buffer[100];
+//uint32_t media = 0;
+//uint16_t i = 0;
 
 uint16_t count_led = 0;
 
@@ -80,6 +80,9 @@ uint16_t Vdcprim_SOC, Vdcprim_Filt;
 uint16_t Vdcsec_SOC, Vdcsec_Filt = 0;
 
 uint16_t CL_DC = 0;
+
+uint16_t ST_DC = 1;                         // Soft-sart DC
+uint16_t aux_ST;
 
 int main(void)
 {
@@ -129,6 +132,15 @@ int main(void)
     Setup_ePWM5();
     Setup_ePWM6();
     Setup_ePWM10();
+
+    // Soft-start
+    for (aux_ST=1;aux_ST<=815;aux_ST++)
+    {
+        EPwm4Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
+        EPwm5Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
+        EPwm6Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
+        DELAY_US(1000);
+    }
 
     // ADC Configuration
     Setup_ADC();
@@ -187,7 +199,13 @@ __interrupt void isr_adca(void)
 //    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
 ////    Isec3_Filt = Filter_ADC5(Isec3_SOC);
 
-//    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
+    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
+
+
+    EPwm4Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
+    EPwm5Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
+    EPwm6Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
+
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;                  // Clear flag interruption
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
