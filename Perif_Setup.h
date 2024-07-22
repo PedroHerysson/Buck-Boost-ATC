@@ -29,7 +29,7 @@ void Off_ePWMs(void);
 
 // Control Routines
 
-int Float_Control (uint16_t Current, uint16_t Voltage);
+uint16_t Float_Control (uint16_t Current, uint16_t Voltage);
 uint16_t Filter_ADC1 (uint16_t Scan_SOC1);
 uint16_t Filter_ADC2 (uint16_t Scan_SOC2);
 

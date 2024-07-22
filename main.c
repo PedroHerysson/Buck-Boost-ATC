@@ -134,11 +134,11 @@ int main(void)
     Setup_ePWM10();
 
     // Soft-start
-    for (aux_ST=1;aux_ST<=815;aux_ST++)
+    for (aux_ST=1;aux_ST<=408;aux_ST++)
     {
-        EPwm4Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
-        EPwm5Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
-        EPwm6Regs.CMPA.bit.CMPA = ST_DC;                      // 0,5 (814)
+        EPwm4Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
+        EPwm5Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
+        EPwm6Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
         DELAY_US(1000);
     }
 
@@ -188,18 +188,20 @@ __interrupt void isr_adca(void)
 //        aux_media++;
 //    }
 
-    Isec1_SOC = AdcaResultRegs.ADCRESULT0;                  // SOC0 - ADCINA3
-    Isec1_Filt = Filter_ADC1(Isec1_SOC) - offset_Isec1;     // Signals filtered by move mean filter and without offset
+    Isec1_SOC = AdcaResultRegs.ADCRESULT0 - offset_Isec1;                  // SOC0 - ADCINA3
+    //Isec1_Filt = Filter_ADC1(Isec1_SOC) - offset_Isec1;     // Signals filtered by move mean filter and without offset
+
     Vdcprim_SOC = AdcaResultRegs.ADCRESULT1;                // SOC1 - ADCINA4
-//    Vdcprim_Filt = Filter_ADC1(Vdcprim_SOC);
+    //Vdcprim_Filt = Filter_ADC1(Vdcprim_SOC);
 //    Isec2_SOC = AdcbResultRegs.ADCRESULT0;                  // SOC0 - ADCINB3
 ////    Isec2_Filt = Filter_ADC3(Isec2_SOC);
 //    Vdcsec_SOC = AdcbResultRegs.ADCRESULT1;                 // SOC1 - ADCINB4
 ////    Vdcsec_Filt = Filter_ADC4(Vdcsec_SOC);
-//    Isec3_SOC = AdccResultRegs.ADCRESULT0;                  // SOC0 - ADCINC3
-////    Isec3_Filt = Filter_ADC5(Isec3_SOC);
+//    Isec3_SOC = AdccResultRegs.ADCRESULT0 - offset_Isec1;                  // SOC0 - ADCINC3
+//    Isec3_Filt = Filter_ADC5(Isec3_SOC);
 
-    CL_DC = Float_Control (Isec1_Filt, Vdcprim_Filt);         // Comment this line without control
+    //Eu tirei as medições de media móvel e usei o valor diretamente do AD, troquei para Isec1SOC
+    CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
 
 
     EPwm4Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)

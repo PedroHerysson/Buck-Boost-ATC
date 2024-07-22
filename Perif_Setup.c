@@ -23,7 +23,9 @@
 #define GC_DC10 1185U
 #define GC_DC11 1314U
 
-#define ref 2520U                   // Voltage Reference
+//#define ref 2520U                   // Voltage Reference
+#define ref 1260U                   // Voltage Reference
+
 
 #define points 4                    // Points of Move Mean Filter
 
@@ -43,6 +45,8 @@ uint16_t Filt2;
 uint16_t Aux_filt;
 uint16_t Aux_filt2;
 
+float aux;
+
 /*
  * @brief Funï¿½ï¿½o para configurar pino como GPIO
  * Pino GPIO, com resistor de pull-up e controlado via CPU1
@@ -51,6 +55,11 @@ void Setup_GPIO(void)
 {
     EALLOW;
 
+    GpioCtrlRegs.GPBGMUX1.bit.GPIO32 = 0;               // GPIO
+    GpioCtrlRegs.GPBGMUX1.bit.GPIO32 = 0;               // GPIO
+    GpioCtrlRegs.GPBPUD.bit.GPIO32 = 1;                 // Resistor pull-up
+    GpioCtrlRegs.GPBDIR.bit.GPIO32 = 1;                 // Only GPIO
+    GpioCtrlRegs.GPBCSEL1.bit.GPIO32 = GPIO_MUX_CPU1;   // CPU1
     // GPIO34 - LED
     GpioCtrlRegs.GPBGMUX1.bit.GPIO34 = 0;               // GPIO
     GpioCtrlRegs.GPBGMUX1.bit.GPIO34 = 0;               // GPIO
@@ -416,7 +425,7 @@ void Setup_ePWM10(void){
     CpuSysRegs.PCLKCR2.bit.EPWM10 = 1;           //habilitar clock
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm10Regs.TBPRD = 476;                          //periodo (up/down) 105Khz Clock/4/fpwm LAB PWM
+    EPwm10Regs.TBPRD = 952;                          //periodo (up/down) 105Khz Clock/2/fpwm LAB PWM
     EPwm10Regs.TBPHS.bit.TBPHS = 0;                  // Phase is 0
     EPwm10Regs.TBCTR = 0x0000;                       // Clear counter
     EPwm10Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;  // Count up/down
@@ -514,7 +523,7 @@ void Setup_ADC()
 
     // Interrupcao pï¿½s SOC0 do ADCA
 
-    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x00;       // InterrupcaoSOC1 gera INT1E (ADCA)
+    AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x01;       // InterrupcaoSOC1 gera INT1E (ADCA)
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;            // Habilita flag INT1
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;          // Limpa flag INT1
 
@@ -537,19 +546,21 @@ void Setup_ADC()
  *
  * @return u[0] -> Control Signal
  */
-int Float_Control (uint16_t Current, uint16_t Voltage)
+uint16_t Float_Control (uint16_t Current, uint16_t Voltage)
 {
-    er[0] = ref - Voltage;
-    k[0] = (1.9052*k[1])-(0.9052*k[2])+(0.0012*er[0])+(0.00004326*er[1])-(0.0012*er[2]);
+    er[0] = ref - (float) Voltage; // casting para tratar variável sem sinak
+    k[0] = (1.9052*k[1])-(0.9052*k[2])+(0.001224*er[0])+(0.00004326*er[1])-(0.001181*er[2]);
 
-    if(k[0]>200) k[0] = 200;
+    if(k[0]>200) k[0] = 200; //limitação de corrente, depende do ponto de operação
 
 //    e[0] = k[0] - Current;        // retirado int(k[0])
-    e[0] = 153 - Current;        // retirado int(k[0])
-    u[0] = ((0.5016*u[1])+(0.4984*u[2])+(0.7596*e[0])+(0.0486*e[1])-(0.711*e[2]));
+    e[0] = 153 - (float) Current;        // casting para tratar variável sem sinak
+    u[0] = ((0.5016*u[1])+(0.4984*u[2])+(0.7596*e[0])+(0.04858*e[1])-(0.71097*e[2])); //nova eq a diferenças
+    //u[0] = ((0.8654*u[1])+(0.1346*u[2])+(0.3856*e[0])+(0.02497*e[1])-(0.3606*e[2]));
+    aux =u[0];
 
     if(u[0] <= 0) u[0] = 0;
-    if(u[0] >= 952) u[0] = 952;
+    if(u[0] >= 400) u[0] = 275; //saturação depende do ponto de operação
 
     u[2]=u[1];
     u[1]=u[0];
@@ -559,7 +570,7 @@ int Float_Control (uint16_t Current, uint16_t Voltage)
     k[1]=k[0];
     er[2]=er[1];
     er[1]=er[0];
-    return (int)u[0];
+    return (uint16_t)u[0];
 }
 
 /*
