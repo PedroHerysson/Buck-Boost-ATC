@@ -8,7 +8,7 @@
 #include "Perif_Setup.h"
 
 
-#define OL_DC 814U                  // Open Loop Signal Control
+#define OL_DC 1555U                  // Open Loop Signal Control
 
 // Gain Curve Parameters, Vomax = 1260 V
 #define GC_DC1 114U
@@ -24,7 +24,7 @@
 #define GC_DC11 1314U
 
 //#define ref 2520U                   // Voltage Reference
-#define ref 1260U                   // Voltage Reference
+#define ref 2428U                   // Voltage Reference
 
 
 #define points 4                    // Points of Move Mean Filter
@@ -48,7 +48,7 @@ uint16_t Aux_filt2;
 float aux;
 
 /*
- * @brief Funï¿½ï¿½o para configurar pino como GPIO
+ * @brief Funcao para configurar pino como GPIO
  * Pino GPIO, com resistor de pull-up e controlado via CPU1
  * @return none*/
 void Setup_GPIO(void)
@@ -150,37 +150,57 @@ void Setup_GPIO(void)
 void Setup_ePWM1(void)
 {
     EALLOW;
-    CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;                   // Off module clock
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+        // 1. Habilitar o Clock para EPWM1
+        // (O CLK para EPWM1 é controlado pelo bit EPWM1 no PCLKCR2)
+        CpuSysRegs.PCLKCR2.bit.EPWM1 = 1;
 
-    EPwm1Regs.TBPRD = 1428;                             // 35 KHz frequency
-    EPwm1Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
-    EPwm1Regs.TBCTR = 0;                                // Clear count
-    EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
-    EPwm1Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
-    EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
-    EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+        // 2. Desabilitar a sincronização da Time-Base antes da configuração
+        CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm1Regs.CMPA.bit.CMPA = EPwm1Regs.TBPRD >> 1;     // 0,5
+        // --- Time-Base Submodule (TB) ---
+        // Frequência de 35 KHz (200MHz / (2 * 1428) = 70000 Hz)
+        EPwm1Regs.TBPRD = 1666;
+        EPwm1Regs.TBPHS.bit.TBPHS = 0;                      // 0 fase
+        EPwm1Regs.TBCTR = 0;                                // Zera o contador
+        EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Modo Triangular (Up-Down)
 
-    EPwm1Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
-    EPwm1Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
-    EPwm1Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm1Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM1A - DIODE
-    EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm1Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm1Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+        // Configuração de Sincronização (pode ser ajustada dependendo da sua aplicação)
+        EPwm1Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO;
+        EPwm1Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // Não sincroniza com outro ePWM (Mestre)
 
-    EPwm1Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM1B - DIODE
-    EPwm1Regs.AQCTLB.bit.CAD = AQ_CLEAR;
-    EPwm1Regs.AQCTLB.bit.PRD = AQ_CLEAR;
-    EPwm1Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+        // Configuração do Clock
+        EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock (Divisor alto = 1)
+        EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV1;               // Clock Divisor (Divisor baixo = 1)
+        // --- Compare Submodule (CMP) ---
+        // Duty Cycle (assumindo OL_DC é a mesma variável ou valor para o EPWM1)
+        EPwm1Regs.CMPA.bit.CMPA = OL_DC;
 
-    // DBCTL not used
+        // Configuração de Shadow Load
+        EPwm1Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Habilita Shadow
+        EPwm1Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;   // Carrega no Zero e no Período (Up-Down)
+        EPwm1Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+        EPwm1Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+        // --- Action Qualifier Submodule (AQ) ---
+        // Ações para o pino EPWM1A
+        EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Clear (LOW) quando Contador = CMPA e Contando UP
+        EPwm1Regs.AQCTLA.bit.CAD = AQ_SET;                  // Set (HIGH) quando Contador = CMPA e Contando DOWN
+        EPwm1Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+        EPwm1Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
+        // Isso gera um pulso centralizado com o duty cycle definido por CMPA
+
+        // --- Dead-Band Submodule (DB) ---
+        EPwm1Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC;           // Sinal Complementar Ativo Alto (EPWMxB Invertido)
+        EPwm1Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;      // Habilita Atraso na Saída A e B (Full Dead-Band)
+
+        // Configuração dos Tempos Mortos
+        // (Cuidado: conforme discutido anteriormente, estes valores podem ser muito baixos)
+        EPwm1Regs.DBFED.bit.DBFED = 0;                      // Falling Edge Delay
+        EPwm1Regs.DBRED.bit.DBRED = 0;                      // Rising Edge Delay
+
+        // 4. Habilitar a sincronização da Time-Base para iniciar a contagem
+        //CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
 
     EDIS;
 }
@@ -193,37 +213,49 @@ void Setup_ePWM1(void)
 void Setup_ePWM2(void)
 {
     EALLOW;
-    CpuSysRegs.PCLKCR2.bit.EPWM2 = 1;                   // Off module clock
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+        // ... Configurações iniciais ...
+        CpuSysRegs.PCLKCR2.bit.EPWM2 = 1;
+        CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm2Regs.TBPRD = 1428;                             // 35 KHz frequency
-    EPwm2Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
-    EPwm2Regs.TBCTR = 0;                                // Clear count
-    EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
-    EPwm2Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
-    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
-    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+        // --- Time-Base Submodule (TB) ---
+        EPwm2Regs.TBPRD = 1666;
+        EPwm2Regs.TBCTR = 0;
+        EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;
 
-    EPwm2Regs.CMPA.bit.CMPA = EPwm2Regs.TBPRD >> 1;     // 0,5
+        // Configuração de Fase (Igual ao EPWM5)
+        EPwm2Regs.TBPHS.bit.TBPHS = 1110;
+        EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
+        EPwm2Regs.TBCTL.bit.PHSEN = TB_ENABLE;
+        EPwm2Regs.TBCTL.bit.PHSDIR = TB_DOWN;
 
-    EPwm2Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
-    EPwm2Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
-    EPwm2Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm2Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+        EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;
+        EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM2A - DIODE
-    EPwm2Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm2Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm2Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+        // --- Compare Submodule (CMP) ---
+        EPwm2Regs.CMPA.bit.CMPA = OL_DC;
+        EPwm2Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
+        EPwm2Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+        EPwm2Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+        EPwm2Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm2Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM2B - DIODE
-    EPwm2Regs.AQCTLB.bit.CAD = AQ_CLEAR;
-    EPwm2Regs.AQCTLB.bit.PRD = AQ_CLEAR;
-    EPwm2Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+        // --- Action Qualifier Submodule (AQ) ---
+        // AQCTLA (EPWM2A): DIODO - Clear em tudo (GND)
+        EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;
+        EPwm2Regs.AQCTLA.bit.CAD = AQ_SET;
+        EPwm2Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+        EPwm2Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
 
-    // DBCTL not used
 
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+        // --- Dead-Band Submodule (DB) ---
+        // Adicionado TEMPO MORTO (Igual ao EPWM4)
+        EPwm2Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC;         // Saída A e B complementares
+        EPwm2Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;    // Aplica Dead-Band em A e B
+        EPwm2Regs.DBFED.bit.DBFED = 0;                      // 10 ns de atraso (Assumindo 200 MHz)
+        EPwm2Regs.DBRED.bit.DBRED = 0;                      // 15 ns de atraso (Assumindo 200 MHz)
+        // O Dead-Band usará a entrada EPWM2B (SWITCH) para criar as saídas complementares com atraso.
+
+        // ... Configurações finais ...
+        //CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
 
     EDIS;
 }
@@ -236,88 +268,106 @@ void Setup_ePWM2(void)
 void Setup_ePWM3(void)
 {
     EALLOW;
-    CpuSysRegs.PCLKCR2.bit.EPWM3 = 1;                   // Off module clock
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+        // 1. Habilitar o Clock para EPWM3
+        CpuSysRegs.PCLKCR2.bit.EPWM3 = 1;
 
-    EPwm3Regs.TBPRD = 1428;                             // 35 KHz frequency
-    EPwm3Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
-    EPwm3Regs.TBCTR = 0;                                // Clear count
-    EPwm3Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
-    EPwm3Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
-    EPwm3Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
-    EPwm3Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+        // 2. Desabilitar a sincronização da Time-Base antes da configuração
+        CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm3Regs.CMPA.bit.CMPA = EPwm3Regs.TBPRD >> 1;     // 0,5
+        // --- Time-Base Submodule (TB) ---
+        EPwm3Regs.TBPRD = 1666;                             // 35 KHz frequency (Período)
+        EPwm3Regs.TBCTR = 0;                                // Zera o contador
+        EPwm3Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Modo Triangular
 
-    EPwm3Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
-    EPwm3Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
-    EPwm3Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm3Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
+        // Configuração de Fase (Igual ao EPWM5 e EPWM2)
+        EPwm3Regs.TBPHS.bit.TBPHS = 1110;                    // 120 phase (Valor do EPWM5/2)
+        EPwm3Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;          // Usa o sinal de sincronismo de entrada (do Mestre, EPWM1)
+        EPwm3Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Habilita a carga da fase
+        EPwm3Regs.TBCTL.bit.PHSDIR = TB_UP;               // Direção para onde o contador começa
 
-    EPwm3Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM3A - DIODE
-    EPwm3Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm3Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm3Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+        // Configuração do Clock
+        EPwm3Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+        EPwm3Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm3Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM3B - DIODE
-    EPwm3Regs.AQCTLB.bit.CAD = AQ_CLEAR;
-    EPwm3Regs.AQCTLB.bit.PRD = AQ_CLEAR;
-    EPwm3Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
+        // --- Compare Submodule (CMP) ---
+        EPwm3Regs.CMPA.bit.CMPA = OL_DC;
 
-    // DBCTL not used
+        // Configuração de Shadow Load
+        EPwm3Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
+        EPwm3Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
+        EPwm3Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+        EPwm3Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+        // --- Action Qualifier Submodule (AQ) ---
+        // Ações idênticas ao EPWM5/2
+
+        // EPWM3A: DIODO - Clear em tudo (GND)
+        EPwm3Regs.AQCTLA.bit.CAU = AQ_CLEAR;
+        EPwm3Regs.AQCTLA.bit.CAD = AQ_SET;
+        EPwm3Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+        EPwm3Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
+
+        // --- Dead-Band Submodule (DB) ---
+        // Adicionado TEMPO MORTO (Igual ao EPWM4/1/2)
+        EPwm3Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC;         // Saída A e B complementares
+        EPwm3Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;    // Aplica Dead-Band em A e B
+        EPwm3Regs.DBFED.bit.DBFED = 0;
+        EPwm3Regs.DBRED.bit.DBRED = 0;
+
+        // 4. Habilitar a sincronização da Time-Base
+        //CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
 
     EDIS;
 }
 
 /*
- * @brief Setup ePWM4 (CREE MODULE 2)
+ * @brief Setup ePWM4 (CREE MODULE 2) - Configurado como Mestre Secundário de Fase 0°
  * PWM Configuration
  * @return none
  * */
 void Setup_ePWM4(void)
 {
     EALLOW;
-    CpuSysRegs.PCLKCR2.bit.EPWM4 = 1;                   // Off module clock
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
+    CpuSysRegs.PCLKCR2.bit.EPWM4 = 1;
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;
 
-    EPwm4Regs.TBPRD = 1428;                             // 35 KHz frequency
-    EPwm4Regs.TBPHS.bit.TBPHS = 0;                      // 0 phase
-    EPwm4Regs.TBCTR = 0;                                // Clear count
-    EPwm4Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
+    // --- Time-Base Submodule (TB) ---
+    EPwm4Regs.TBPRD = 1666;
+    EPwm4Regs.TBPHS.bit.TBPHS = 0;                      // Fase 0°
+    EPwm4Regs.TBCTR = 0;
+    EPwm4Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;
 
-    EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO;
+    // ALTERAÇÃO CRUCIAL: Mestre Secundário (como EPWM1)
+    EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO;          // Gera seu próprio SYNC (Não usa a entrada)
+    EPwm4Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // Não espera o SYNC para carregar a fase
+    // Fim da ALTERAÇÃO
 
-    EPwm4Regs.TBCTL.bit.PHSEN = TB_DISABLE;             // No phase
-    EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
+    EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;
     EPwm4Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm4Regs.CMPA.bit.CMPA = 1;                      // 0,57 (814)
-//    EPwm4Regs.CMPA.bit.CMPA = OL_DC;                      // 0,57 (814)
+    // --- Compare Submodule (CMP) ---
+    EPwm4Regs.CMPA.bit.CMPA = OL_DC;
+    // ... (restante das configurações CMP e AQCTLA) ...
 
-    EPwm4Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
+    EPwm4Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
     EPwm4Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
     EPwm4Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
     EPwm4Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm4Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM4A - DIODE
-    EPwm4Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm4Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm4Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+    EPwm4Regs.AQCTLA.bit.CAU = AQ_CLEAR;
+    EPwm4Regs.AQCTLA.bit.CAD = AQ_SET;
+    EPwm4Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+    EPwm4Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
 
-    EPwm4Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM4B - SWITCH
-    EPwm4Regs.AQCTLB.bit.CAD = AQ_SET;
-    EPwm4Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
-    EPwm4Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+    // --- Dead-Band Submodule (DB) ---
+    EPwm4Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC;
+    EPwm4Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE;
+    EPwm4Regs.DBFED.bit.DBFED = 0;
+    EPwm4Regs.DBRED.bit.DBRED = 0;
 
-    // DBCTL not used
-
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
-
+    // REMOVIDO: CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
     EDIS;
 }
-
 /*
  * @brief Setup ePWM5 (CREE MODULE 2)
  * PWM Configuration
@@ -329,11 +379,11 @@ void Setup_ePWM5(void)
     CpuSysRegs.PCLKCR2.bit.EPWM5 = 1;                   // Off module clock
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
 
-    EPwm5Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm5Regs.TBPRD = 1666;                             // 35 KHz frequency
     EPwm5Regs.TBCTR = 0;                                // Clear count
     EPwm5Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
 
-    EPwm5Regs.TBPHS.bit.TBPHS = 952;                    // 120 phase (0-TBPRD)(0-180)
+    EPwm5Regs.TBPHS.bit.TBPHS = 1110;                    // 120 phase (0-TBPRD)(0-180)
     EPwm5Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
     EPwm5Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Phase
     EPwm5Regs.TBCTL.bit.PHSDIR = TB_DOWN;               // Direction down
@@ -341,27 +391,30 @@ void Setup_ePWM5(void)
     EPwm5Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm5Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm5Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
-//    EPwm5Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
+//    EPwm5Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
+    EPwm5Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm5Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm5Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
     EPwm5Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
     EPwm5Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm5Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM5A - DIODE
-    EPwm5Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm5Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm5Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+    // Configuração do Action Qualifier (AQ) para a saída EPWM5A
+    // Cria um pulso PWM centralizado.
+    EPwm5Regs.AQCTLA.bit.CAU = AQ_CLEAR;      // Clear (LOW) quando o contador = CMPA e conta para CIMA (UP)
+    EPwm5Regs.AQCTLA.bit.CAD = AQ_SET;        // Set (HIGH) quando o contador = CMPA e conta para BAIXO (DOWN)
+    EPwm5Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+    EPwm5Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
 
-    EPwm5Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM5B - SWITCH
-    EPwm5Regs.AQCTLB.bit.CAD = AQ_SET;
-    EPwm5Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
-    EPwm5Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+    // Configuração do Dead-Band (DB)
+    EPwm5Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC; // Polaridade: Complementar Ativo Alto. O sinal EPWM5B é o EPWM5A atrasado e invertido.
+    EPwm5Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE; // Habilita o Dead-Band nas duas saídas (A e B).
+    EPwm5Regs.DBFED.bit.DBFED = 0;              // Dead-Band Falling Edge Delay (atraso na borda de descida).
+    EPwm5Regs.DBRED.bit.DBRED = 0;              // Dead-Band Rising Edge Delay (atraso na borda de subida).
 
     // DBCTL not used
 
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+    //CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
 
     EDIS;
 }
@@ -377,11 +430,11 @@ void Setup_ePWM6(void)
     CpuSysRegs.PCLKCR2.bit.EPWM6 = 1;                   // Off module clock
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0;               // Off module count
 
-    EPwm6Regs.TBPRD = 1428;                             // 35 KHz frequency
+    EPwm6Regs.TBPRD = 1666;                             // 35 KHz frequency
     EPwm6Regs.TBCTR = 0;                                // Clear count
     EPwm6Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN;      // Triangule
 
-    EPwm6Regs.TBPHS.bit.TBPHS = 952;                    // 0 phase (0-TBPRD)
+    EPwm6Regs.TBPHS.bit.TBPHS = 1110;                    // 0 phase (0-TBPRD)
     EPwm6Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;
     EPwm6Regs.TBCTL.bit.PHSEN = TB_ENABLE;              // Phase
     EPwm6Regs.TBCTL.bit.PHSDIR = TB_UP;                 // Direction up
@@ -389,34 +442,37 @@ void Setup_ePWM6(void)
     EPwm6Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;            // Prescale - 200 MHz clock
     EPwm6Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
-    EPwm6Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
-//    EPwm6Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
+//    EPwm6Regs.CMPA.bit.CMPA = 1;                      // 0,5 (814)
+    EPwm6Regs.CMPA.bit.CMPA = OL_DC;                      // 0,5 (814)
 
     EPwm6Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;         // Load after event, between 0 and PRD
     EPwm6Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO_PRD;
     EPwm6Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
     EPwm6Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO_PRD;
 
-    EPwm6Regs.AQCTLA.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM6A - DIODE
-    EPwm6Regs.AQCTLA.bit.CAD = AQ_CLEAR;
-    EPwm6Regs.AQCTLA.bit.PRD = AQ_CLEAR;
-    EPwm6Regs.AQCTLA.bit.ZRO = AQ_CLEAR;
+    // Configuração do Action Qualifier (AQ) para a saída EPWM5A
+    // Cria um pulso PWM centralizado.
+    EPwm6Regs.AQCTLA.bit.CAU = AQ_CLEAR;      // Clear (LOW) quando o contador = CMPA e conta para CIMA (UP)
+    EPwm6Regs.AQCTLA.bit.CAD = AQ_SET;        // Set (HIGH) quando o contador = CMPA e conta para BAIXO (DOWN)
+    EPwm6Regs.AQCTLA.bit.PRD = AQ_NO_ACTION;
+    EPwm6Regs.AQCTLA.bit.ZRO = AQ_NO_ACTION;
 
-    EPwm6Regs.AQCTLB.bit.CAU = AQ_CLEAR;                // Action for UP and DOWN ePWM6B - SWITCH
-    EPwm6Regs.AQCTLB.bit.CAD = AQ_SET;
-    EPwm6Regs.AQCTLB.bit.PRD = AQ_NO_ACTION;
-    EPwm6Regs.AQCTLB.bit.ZRO = AQ_NO_ACTION;
+    // Configuração do Dead-Band (DB)
+    EPwm6Regs.DBCTL.bit.POLSEL = DB_ACTV_HIC; // Polaridade: Complementar Ativo Alto. O sinal EPWM5B é o EPWM5A atrasado e invertido.
+    EPwm6Regs.DBCTL.bit.OUT_MODE = DB_FULL_ENABLE; // Habilita o Dead-Band nas duas saídas (A e B).
+    EPwm6Regs.DBFED.bit.DBFED = 0;              // Dead-Band Falling Edge Delay (atraso na borda de descida).
+    EPwm6Regs.DBRED.bit.DBRED = 0;              // Dead-Band Rising Edge Delay (atraso na borda de subida).
 
     // DBCTL not used
 
-    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
+    //CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;               // On module count
 
     EDIS;
 }
 
 
 /*
- * @brief Funï¿½ï¿½o para configurar pulso para start do ADC
+ * @brief Funcao para configurar pulso para start do ADC
  *
  * @return none
  */
@@ -548,19 +604,19 @@ void Setup_ADC()
  */
 uint16_t Float_Control (uint16_t Current, uint16_t Voltage)
 {
-    er[0] = ref - (float) Voltage; // casting para tratar variável sem sinak
-    k[0] = (1.9052*k[1])-(0.9052*k[2])+(0.001224*er[0])+(0.00004326*er[1])-(0.001181*er[2]);
+    er[0] = ref - (float) Voltage; // casting para tratar variavel sem sinak
+    k[0] = (1.9207*k[1])-(0.9207*k[2])+(0.0007686*er[0])+(0.00001615*er[1])-(0.0007524*er[2]);
 
-    if(k[0]>200) k[0] = 200; //limitação de corrente, depende do ponto de operação
+    if(k[0]>620) k[0] = 620; //limitacao de corrente, depende do ponto de operação
 
 //    e[0] = k[0] - Current;        // retirado int(k[0])
-    e[0] = 153 - (float) Current;        // casting para tratar variável sem sinak
-    u[0] = ((0.5016*u[1])+(0.4984*u[2])+(0.7596*e[0])+(0.04858*e[1])-(0.71097*e[2])); //nova eq a diferenças
-    //u[0] = ((0.8654*u[1])+(0.1346*u[2])+(0.3856*e[0])+(0.02497*e[1])-(0.3606*e[2]));
+    e[0] = k[0] - (float) Current;        // casting para tratar variavel sem sinal
+    //u[0] = ((0.5016*u[1])+(0.4984*u[2])+(0.7596*e[0])+(0.04858*e[1])-(0.71097*e[2])); //nova eq a diferencas
+    u[0] = ((0.8654*u[1])+(0.1346*u[2])+(0.3856*e[0])+(0.02497*e[1])-(0.3606*e[2]));
     aux =u[0];
 
     if(u[0] <= 0) u[0] = 0;
-    if(u[0] >= 400) u[0] = 275; //saturação depende do ponto de operação
+    if(u[0] >= 952) u[0] = 814; //saturacao depende do ponto de operação
 
     u[2]=u[1];
     u[1]=u[0];

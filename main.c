@@ -131,16 +131,21 @@ int main(void)
     Setup_ePWM4();
     Setup_ePWM5();
     Setup_ePWM6();
+
+    EALLOW;
+    CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
+    EDIS;
+
     Setup_ePWM10();
 
     // Soft-start
-    for (aux_ST=1;aux_ST<=408;aux_ST++)
-    {
-        EPwm4Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
-        EPwm5Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
-        EPwm6Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
-        DELAY_US(1000);
-    }
+//    for (aux_ST=1;aux_ST<=408;aux_ST++)
+//    {
+//        EPwm4Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
+//        EPwm5Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
+//        EPwm6Regs.CMPA.bit.CMPA = aux_ST;                      // 0,5 (814)
+//        DELAY_US(1000);
+//    }
 
     // ADC Configuration
     Setup_ADC();
@@ -157,13 +162,13 @@ int main(void)
     while(1)
     {
         // PWM ATT
-//        EPwm4Regs.CMPA.bit.CMPA = CL_DC;
-//        EPwm5Regs.CMPA.bit.CMPA = CL_DC;
-//        EPwm6Regs.CMPA.bit.CMPA = CL_DC;
+        //EPwm4Regs.CMPA.bit.CMPA = CL_DC;
+        //EPwm5Regs.CMPA.bit.CMPA = CL_DC;
+        //EPwm6Regs.CMPA.bit.CMPA = CL_DC;
 
         // DAC Plot
-        DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus) - DACOUTA
-        DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem - DACOUTB
+        //DacaRegs.DACVALS.all = EPwm4Regs.TBCTR;                           // Triangular EPWM4 (0 graus) - DACOUTA
+        //DacbRegs.DACVALS.all = EPwm10Regs.TBCTR;                          // Triangular amostragem - DACOUTB
     }
 }
 
@@ -201,9 +206,12 @@ __interrupt void isr_adca(void)
 //    Isec3_Filt = Filter_ADC5(Isec3_SOC);
 
     //Eu tirei as medições de media móvel e usei o valor diretamente do AD, troquei para Isec1SOC
-    CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
+    //CL_DC = Float_Control (Isec1_SOC, Vdcprim_SOC);         // Comment this line without control
+    CL_DC = 629;
 
-
+    EPwm1Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
+    EPwm2Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
+    EPwm3Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
     EPwm4Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
     EPwm5Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
     EPwm6Regs.CMPA.bit.CMPA = CL_DC;                      // 0,5 (814)
